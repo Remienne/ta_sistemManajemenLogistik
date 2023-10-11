@@ -48,6 +48,7 @@ dependencies:
   intl: ^0.18.1
   rflutter_alert: ^2.0.7
   rename: ^3.0.0
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:

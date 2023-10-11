@@ -1,21 +1,88 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
-import 'package:the_app/features/logisticMain/controllers/logistic_page_controller.dart';
 import 'logistic_input.dart';
 
-class LogisticPage extends StatelessWidget {
+class LogisticPage extends StatefulWidget {
   static const routeName = '/logistic';
-  LogisticPage({super.key});
+  const LogisticPage({super.key});
 
+  @override
+  State<LogisticPage> createState() => _LogisticPageState();
+}
+
+class _LogisticPageState extends State<LogisticPage> {
   final TextEditingController _searchController = TextEditingController();
 
+  List _allResults =[];
+
+  List _resultList =[];
+
+  @override
+  void initState() {
+    super.initState();
+    getRecords();
+    _searchController.addListener(_onSearchChanged);
+    // Your initialization code here
+  }
+
+  getRecords()async{
+    var data = await FirebaseFirestore
+        .instance
+        .collection('logistics')
+        .get();
+    setState(() {
+      _allResults = data.docs;
+    });
+    _searchResultList();
+  }
+
+  _onSearchChanged() {
+    debugPrint(_searchController.text);
+    _searchResultList();
+  }
+
+  _searchResultList(){
+    var showResult = [];
+    if(_searchController.text != "")
+    {
+      for (var clientSnapshot in _allResults){
+        var name = clientSnapshot['Nama Barang'].toString().toLowerCase();
+        if(name.contains(_searchController.text.toLowerCase())){
+          showResult.add(clientSnapshot);
+        }
+      }
+    }
+    else{
+      showResult = List.from(_allResults);
+    }
+
+    setState(() {
+      _resultList = showResult;
+    });
+
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Your code when dependencies change
+  }
+
+  @override
+  void dispose() {
+    // Your cleanup code here
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LogisticPageController());
+
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
@@ -105,94 +172,79 @@ class LogisticPage extends StatelessWidget {
                 ),
               ),
               // item list
-              FutureBuilder(
-                future: controller.getItemList(),
-                builder: (context, snapshot){
-                  if(snapshot.connectionState == ConnectionState.done){
-                    if(snapshot.hasData){
-                      return Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 15, right: 15),
-                            child: ListView.builder(
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (c, index) {
-                                DateTime date = (snapshot.data![index].dateEnd).toDate();
-                                String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
-                                debugPrint(formatted);
-                                return Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Container(
-                                        height: 90,
-                                        padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                        child: Row(
-                                          children: [
-                                            //image
-                                            SizedBox(
-                                                width: 65,
-                                                height: 65,
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                  ),
-                                                  child: Image.network(snapshot.data![index].imgPath,
-                                                      errorBuilder: (context, error, stackTrace) {
-                                                        return const Image(image: AssetImage('assets/images/no-photo.png'));
-                                                      }
-                                                  ),
-                                                )
-                                            ),
-                                            const SizedBox(width: 20),
-                                            //desc
-                                            Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    snapshot.data![index].name,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontSize:18,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    snapshot.data![index].category,
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    formatted,
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        )
-                                    )
-                                );
-                              },
+              Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 15, right: 15),
+                    child: ListView.builder(
+                      itemCount: _resultList.length,
+                      itemBuilder: (c, index) {
+                        DateTime date = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
+                        String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
+                        debugPrint(formatted);
+                        return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          )
-                      );
-                    }else if(snapshot.hasError){
-                      return Center(child: Text(snapshot.error.toString()));
-                    }else{
-                      return const Center(child: Text("Something went wrong!"));
-                    }
-                  }else{
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              )
+                            child: Container(
+                                height: 90,
+                                padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                child: Row(
+                                  children: [
+                                    //image
+                                    SizedBox(
+                                        width: 65,
+                                        height: 65,
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: CachedNetworkImage(
+                                              imageUrl: _resultList[index]['Link Gambar'],
+                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                            )
+                                        )
+                                    ),
+                                    const SizedBox(width: 20),
+                                    //desc
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _resultList[index]['Nama Barang'],
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize:18,
+                                            ),
+                                          ),
+                                          Text(
+                                            _resultList[index]['Kategori'],
+                                            style: GoogleFonts.poppins(
+                                              fontSize:14,
+                                            ),
+                                          ),
+                                          Text(
+                                            formatted,
+                                            style: GoogleFonts.poppins(
+                                              fontSize:14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                )
+                            )
+                        );
+                      },
+                    ),
+                  )
+              ),
             ],
           ),
           //fab
@@ -200,20 +252,20 @@ class LogisticPage extends StatelessWidget {
             bottom: 16.0, // Adjust the position of the FAB as needed
             right: 16.0,
             child: FloatingActionButton(
-              onPressed: () {
-                if(context.mounted) {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LogisticInput())
-                  );
-                }
-              },
-              backgroundColor: taAccentColor,
-              foregroundColor: Colors.white,
-              child: Transform.scale(
-                scale: 1.2,
-                child: const Icon(Icons.add),
-              )
+                onPressed: () {
+                  if(context.mounted) {
+                    Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LogisticInput())
+                    );
+                  }
+                },
+                backgroundColor: taAccentColor,
+                foregroundColor: Colors.white,
+                child: Transform.scale(
+                  scale: 1.2,
+                  child: const Icon(Icons.add),
+                )
             ),
           )
         ],
