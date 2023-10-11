@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "220861199482",
+    "project_id": "sistem-manajemen-logistik",
+    "storage_bucket": "sistem-manajemen-logistik.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:220861199482:android:83bcc52e903420610137c3",
+        "android_client_info": {
+          "package_name": "com.example.the_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "220861199482-7s0dqcq0p2md7189pam8nvt6vpok9ms6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB117GvjqurqwNwsaJPSuNWJkDizwWIMZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "220861199482-7s0dqcq0p2md7189pam8nvt6vpok9ms6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "220861199482-8sh2qdfpsnhv0s4u93jrjc952o5n4suk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.theApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

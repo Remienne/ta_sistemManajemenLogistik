@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>220861199482-8sh2qdfpsnhv0s4u93jrjc952o5n4suk.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.220861199482-8sh2qdfpsnhv0s4u93jrjc952o5n4suk</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCH3UDmCk6CDqV2tKMGqyku6goAuqMmxFY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>220861199482</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.theApp</string>
+	<key>PROJECT_ID</key>
+	<string>sistem-manajemen-logistik</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sistem-manajemen-logistik.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:220861199482:ios:50100b5d2a8f317b0137c3</string>
+</dict>
+</plist>
