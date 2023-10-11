@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     await AuthenticationRepository().login(email, password);
     setState(() => _loading = false);
     await Future.delayed(const Duration(seconds: 1));
-    if(context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LogisticPage()));
+    if(context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LogisticPage()));
   }
 
   @override

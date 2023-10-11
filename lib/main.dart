@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,21 +25,19 @@ class MyApp extends StatelessWidget {
       theme: TheAppTheme.lightTheme,
       darkTheme: TheAppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      // home: StreamBuilder<User?>(
-      //   stream: FirebaseAuth.instance.authStateChanges(),
-      //   builder: (context, snapshot){
-      //     if (snapshot.hasData){
-      //       return LogisticPage();
-      //     }else {
-      //       return const LoginPage();
-      //     }
-      //   },
-      // ),
-      // home: LogisticPage(),
-      initialRoute: LogisticPage.routeName,
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot){
+          if (snapshot.hasData){
+            return LogisticPage();
+          }else {
+            return const LoginPage();
+          }
+        },
+      ),
       routes: {
         LoginPage.routeName: (context) => const LoginPage(),
-        LogisticPage.routeName: (context) => LogisticPage(),
+        LogisticPage.routeName: (context) => const LogisticPage(),
         LogisticInput.routeName: (context) => const LogisticInput(),
       },
     );

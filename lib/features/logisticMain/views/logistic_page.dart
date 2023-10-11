@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/repositories/authentication_repository.dart';
 import 'logistic_input.dart';
 
 class LogisticPage extends StatefulWidget {
@@ -108,6 +109,12 @@ class _LogisticPageState extends State<LogisticPage> {
           ),
         ),
         backgroundColor: taPrimaryColor,
+        actions: [
+          IconButton(
+            onPressed: () => AuthenticationRepository().logout(),
+            icon: const Icon(Icons.logout),
+          )
+        ],
       ),
 
       backgroundColor: taBackgroundColor,

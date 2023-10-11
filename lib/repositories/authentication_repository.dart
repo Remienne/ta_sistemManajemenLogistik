@@ -17,7 +17,7 @@ class AuthenticationRepository extends GetxController{
   }
 
   _setInitialScreen(User? user){
-    user == null ? Get.offAll(() => const LoginPage()) : Get.offAll(() => LogisticPage());
+    user == null ? Get.offAll(() => const LoginPage()) : Get.offAll(() => const LogisticPage());
   }
 
   Future<void> login(String email, String password) async{
