@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
@@ -42,7 +42,6 @@ class _LogisticPageState extends State<LogisticPage> {
   }
 
   _onSearchChanged() {
-    debugPrint(_searchController.text);
     _searchResultList();
   }
 
@@ -187,7 +186,6 @@ class _LogisticPageState extends State<LogisticPage> {
                       itemBuilder: (c, index) {
                         DateTime date = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
                         String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
-                        debugPrint(formatted);
                         return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             clipBehavior: Clip.antiAlias,
@@ -207,10 +205,11 @@ class _LogisticPageState extends State<LogisticPage> {
                                             decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(10),
                                             ),
-                                            child: CachedNetworkImage(
-                                              imageUrl: _resultList[index]['Link Gambar'],
-                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                            child: FadeInImage.assetNetwork(
+                                              placeholder: 'assets/images/no-photo.png',
+                                              image: _resultList[index]['Link Gambar'],
+                                              imageErrorBuilder: (context, error, stackTrace) =>
+                                                  const Image(image: AssetImage('assets/images/no-photo.png'))
                                             )
                                         )
                                     ),
@@ -260,12 +259,7 @@ class _LogisticPageState extends State<LogisticPage> {
             right: 16.0,
             child: FloatingActionButton(
                 onPressed: () {
-                  if(context.mounted) {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LogisticInput())
-                    );
-                  }
+                  Get.off(() => const LogisticInput());
                 },
                 backgroundColor: taAccentColor,
                 foregroundColor: Colors.white,

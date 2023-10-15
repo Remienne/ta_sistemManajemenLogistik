@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -7,12 +8,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/features/logisticMain/controllers/user_controller.dart';
 import 'package:the_app/features/logisticMain/views/logistic_page.dart';
 import 'package:the_app/repositories/logistic_repository/logistics_model.dart';
 import 'package:the_app/features/logisticMain/controllers/logistic_input_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart';
+import 'package:the_app/repositories/users_repository/user_model.dart';
 
 class LogisticInput extends StatefulWidget {
   static const routeName = '/logisticInput';
@@ -23,9 +26,9 @@ class LogisticInput extends StatefulWidget {
 }
 
 class _LogisticInputState extends State<LogisticInput> {
-
   final _formKey = GlobalKey<FormState>();
-  final controller = Get.put(LogisticInputController());
+  final logisticController = Get.put(LogisticInputController());
+  final userController = Get.put(UserController());
 
   // ignore: prefer_typing_uninitialized_variables
   var category, units, _urlItemImage;
@@ -178,43 +181,42 @@ class _LogisticInputState extends State<LogisticInput> {
                   //input gambar
                   GestureDetector(
                     onTap: () {
-                      // Handle image selection here
                       _showPicker(context);
                     },
                     child: SizedBox(
                       width: 120,
                       height: 120,
-                      // decoration: BoxDecoration(
-                      //   shape: BoxShape.circle,
-                      //   color: Colors.grey[300],
-                      // ),
                       child: Center(
                         child: Stack(
                           children: [
                             CircleAvatar(
+                              backgroundColor: Colors.grey[300],
                               radius: 55,
                               child:  _image != null
-                              ? ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: Image.file(
-                                  _image!,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.fitHeight,
-                                ),
-                              )
-                              : Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(50)),
-                                width: 100,
-                                height: 100,
-                                child: Icon(
-                                  Icons.add_a_photo,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              ),
+                                  //image uploaded
+                                  ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(50),
+                                      child: Image.file(
+                                        _image!,
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.fitHeight,
+                                      ),
+                                    )
+                                  //placeholder
+                                  : Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white70,
+                                        borderRadius: BorderRadius.circular(50)),
+                                    width: 100,
+                                    height: 100,
+                                    child: const Icon(
+                                      Icons.add_photo_alternate_rounded,
+                                      color: Colors.grey,
+                                      size: 30,
+                                    ),
+                                    ),
+                            ),
                           ],
                         ),
                       ),
@@ -226,7 +228,7 @@ class _LogisticInputState extends State<LogisticInput> {
                   //input nama item
                   TextFormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    controller: controller.name,
+                    controller: logisticController.name,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                     ),
@@ -259,7 +261,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               }
                               return null;
                             },
-                            controller: controller.stock,
+                            controller: logisticController.stock,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                             ),
@@ -282,9 +284,18 @@ class _LogisticInputState extends State<LogisticInput> {
                               .orderBy('nama')
                               .snapshots(),
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (!snapshot.hasData) return const Center(child: Text("Something went wrong!"));
                             if(snapshot.hasError){
                               return Center(child: Text(snapshot.error.toString()));
+                            }
+                            if(!snapshot.hasData){
+                              return DotsIndicator(
+                                dotsCount: 3,
+                                position: 0,
+                                decorator: const DotsDecorator(
+                                  color: Colors.grey, // Inactive color
+                                  activeColor: taSecondaryColor,
+                                ),
+                              );
                             }
                             return DropdownButtonFormField(
                               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -328,7 +339,7 @@ class _LogisticInputState extends State<LogisticInput> {
                             }
                             return null;
                           },
-                          controller: controller.storageID,
+                          controller: logisticController.storageID,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                           ),
@@ -355,7 +366,16 @@ class _LogisticInputState extends State<LogisticInput> {
                         AsyncSnapshot<QuerySnapshot> snapshot) {
                       // Safety check to ensure that snapshot contains data
                       // without this safety check, StreamBuilder dirty state warnings will be thrown
-                      if (!snapshot.hasData) return Container();
+                      if (!snapshot.hasData) {
+                        return DotsIndicator(
+                        dotsCount: 3,
+                        position: 0,
+                        decorator: const DotsDecorator(
+                          color: Colors.grey, // Inactive color
+                          activeColor: taSecondaryColor,
+                        ),
+                      );
+                      }
                       // Set this value for default,
                       // setDefault will change if an item was selected
                       // First item from the List will be displayed
@@ -369,7 +389,7 @@ class _LogisticInputState extends State<LogisticInput> {
                         ),
                         validator: (value) {
                           if (value == null) {
-                            return 'Please enter some text';
+                            return 'Pilihan kategori tidak boleh kosong!';
                           }
                           return null;
                         },
@@ -392,77 +412,91 @@ class _LogisticInputState extends State<LogisticInput> {
 
                   //datePicker
                   TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    controller: controller.dateEnd,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                    ),
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: 'Tanggal Kadaluarsa',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      controller: logisticController.dateEnd,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama Item tidak boleh kosong!';
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Tanggal Kadaluarsa',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Tanggal Kadaluarsa tidak boleh kosong!';
+                        }
+                        return null;
+                      },
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2001),
+                            lastDate: DateTime(2101));
+                        if (picked != null && picked != selectedDate) {
+                          setState(() {
+                            selectedDate = picked;
+                            logisticController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
+                          });
+                        }
                       }
-                      return null;
-                    },
-                    onTap: () async {
-                      final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: DateTime(2001),
-                          lastDate: DateTime(2101));
-                      if (picked != null && picked != selectedDate) {
-                        setState(() {
-                          selectedDate = picked;
-                          controller.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
-                        });
-                      }
-                    }
                   ),
 
                   const SizedBox(height: 30),
 
                   //buttonAdd
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if(_formKey.currentState!.validate()){
-                          //do your setState stuff
-                          setState(() {
-                            final logistics = LogisticsModel(
-                                name: controller.name.text.trim(),
-                                storageId: controller.storageID.text.trim(),
-                                units: units,
-                                stock: double.parse(controller.stock.text.trim()),
-                                category: category,
-                                dateEnd: Timestamp.fromDate(selectedDate),
-                                uploadedDate: Timestamp.fromDate(dateNow),
-                                imgPath: _urlItemImage?? 'Tidak ada gambar'
-                            );
-                            LogisticInputController.instance.insertItem(logistics);
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => LogisticPage())
-                            );
-                          });
-                          _formKey.currentState?.reset();
+                  FutureBuilder(
+                    future: userController.getUserData(),
+                    builder: (context, snapshot){
+                      if(snapshot.connectionState == ConnectionState.done){
+                        if(snapshot.hasData){
+                          UserModel userData = snapshot.data as UserModel;
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if(_formKey.currentState!.validate()){
+                                  //do your setState stuff
+                                  setState(() {
+                                    final logistics = LogisticsModel(
+                                        name: logisticController.name.text.trim(),
+                                        storageId: logisticController.storageID.text.trim(),
+                                        units: units,
+                                        stock: double.parse(logisticController.stock.text.trim()),
+                                        category: category,
+                                        dateEnd: Timestamp.fromDate(selectedDate),
+                                        uploadedDate: Timestamp.fromDate(dateNow),
+                                        imgPath: _urlItemImage?? 'Tidak ada gambar',
+                                        officer: userData.name
+                                    );
+                                    LogisticInputController.instance.insertItem(logistics);
+                                    Get.offAll(() => const LogisticPage());
+                                  });
+                                  _formKey.currentState?.reset();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
+                                  backgroundColor: taAccentColor,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15)),
+                                  )
+                              ),
+                              child: Text('Tambah Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
+                            ),
+                          );
+                        }else if(snapshot.hasError){
+                          return Center(child: Text(snapshot.error.toString()));
+                        }else{
+                          return const Center(child: Text("Something went wrong!"));
                         }
-                      },
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
-                          backgroundColor: taAccentColor,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          )
-                      ),
-                      child: Text('Tambah Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
-                    ),
+                      }else{
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                    },
                   ),
 
                   const SizedBox(height: 10),
@@ -479,11 +513,9 @@ class _LogisticInputState extends State<LogisticInput> {
                           desc: "Apakah anda akan batal menginputkan item?",
                           buttons: [
                             DialogButton(
-                              onPressed: () => Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => LogisticPage()),
-                                      (Route<dynamic> route) => false
-                              ),
+                              onPressed: () {
+                                Get.offAll(() => const LogisticPage());
+                              },
                               color: taPrimaryColor,
                               child: const Text(
                                 "Ya",
@@ -509,7 +541,7 @@ class _LogisticInputState extends State<LogisticInput> {
                       ),
                       child: Text('Kembali', style: GoogleFonts.poppins(fontSize: 14, color: taPrimaryColor)),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
-import 'package:the_app/features/logisticMain/views/logistic_page.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,16 +18,18 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
 
+  AuthenticationRepository authController = AuthenticationRepository.instance;
+
   handleSubmit() async{
     if(!_formKey.currentState!.validate()) return;
+
     final email = _email.value.text;
     final password = _password.value.text;
 
     setState(() => _loading = true);
-    await AuthenticationRepository().login(email, password);
+    await authController.login(email, password);
     setState(() => _loading = false);
     await Future.delayed(const Duration(seconds: 1));
-    if(context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LogisticPage()));
   }
 
   @override

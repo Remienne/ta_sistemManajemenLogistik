@@ -10,6 +10,7 @@ class LogisticsModel{
   Timestamp dateEnd;
   Timestamp uploadedDate;
   final String imgPath;
+  final String officer;
 
   LogisticsModel({
     this.id,
@@ -21,6 +22,7 @@ class LogisticsModel{
     required this.dateEnd,
     required this.uploadedDate,
     required this.imgPath,
+    required this.officer,
   });
 
   toJson(){
@@ -33,6 +35,7 @@ class LogisticsModel{
       "Tanggal Kadaluarsa":dateEnd,
       "Tanggal Unggah":uploadedDate,
       "Link Gambar": imgPath,
+      "Nama Petugas": officer,
     };
   }
 
@@ -48,6 +51,7 @@ class LogisticsModel{
         dateEnd: data['Tanggal Kadaluarsa'],
         uploadedDate: data['Tanggal Kadaluarsa'],
         imgPath: data['Link Gambar'] ?? '',
+        officer: data['Nama Petugas'] ?? '',
     );
   }
 }

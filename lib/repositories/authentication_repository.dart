@@ -6,13 +6,16 @@ import 'package:the_app/features/logisticMain/views/logistic_page.dart';
 class AuthenticationRepository extends GetxController{
   static AuthenticationRepository get instance => Get.find();
 
-  final _auth = FirebaseAuth.instance;
-  late final Rx<User?> firebaseUser;
+  final auth = FirebaseAuth.instance;
+  late Rx<User?> firebaseUser;
 
   @override
   void onReady(){
-    firebaseUser = Rx<User?>(_auth.currentUser);
-    firebaseUser.bindStream(_auth.userChanges());
+    super.onReady();
+
+    firebaseUser = Rx<User?>(auth.currentUser);
+
+    firebaseUser.bindStream(auth.userChanges());
     ever(firebaseUser, _setInitialScreen);
   }
 
@@ -22,11 +25,11 @@ class AuthenticationRepository extends GetxController{
 
   Future<void> login(String email, String password) async{
     try{
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-    } catch(_){}
+      await auth.signInWithEmailAndPassword(email: email, password: password);
+    } catch(firebaseAuthException){}
   }
 
-  Future<void> logout() async => await _auth.signOut();
+  void logout() async => await auth.signOut();
 
 }
 

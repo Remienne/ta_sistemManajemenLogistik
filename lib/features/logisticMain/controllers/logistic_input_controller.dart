@@ -15,13 +15,8 @@ class LogisticInputController extends GetxController{
   final dateEnd = TextEditingController();
 
   final logisticDb = Get.put(LogisticDb());
-  // final categoryDb = Get.put(CategoriesDb());
 
   Future<void> insertItem(LogisticsModel logistics) async {
     await logisticDb.insertLogisticAlert(logistics);
   }
-
-  // Future<List<CategoriesModel>> getCategoryList() async{
-  //   return await categoryDb.fetchCategory();
-  // }
 }

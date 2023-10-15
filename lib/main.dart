@@ -1,15 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_app/features/logisticMain/views/logistic_input.dart';
+import 'package:the_app/repositories/authentication_repository.dart';
 import 'package:the_app/utils/theme/theme.dart';
-import 'features/authentication/views/login_page.dart';
-import 'features/logisticMain/views/logistic_page.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  await Firebase.initializeApp().then((value) {
+    Get.put(AuthenticationRepository());
+  });
+
   runApp(const MyApp());
 }
 
@@ -25,21 +26,7 @@ class MyApp extends StatelessWidget {
       theme: TheAppTheme.lightTheme,
       darkTheme: TheAppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot){
-          if (snapshot.hasData){
-            return LogisticPage();
-          }else {
-            return const LoginPage();
-          }
-        },
-      ),
-      routes: {
-        LoginPage.routeName: (context) => const LoginPage(),
-        LogisticPage.routeName: (context) => const LogisticPage(),
-        LogisticInput.routeName: (context) => const LogisticInput(),
-      },
+      home: const CircularProgressIndicator(),
     );
   }
 }
