@@ -8,6 +8,7 @@ class LogisticInputController extends GetxController{
 
   //Textfield Controllers to get data from Textfields
   final name = TextEditingController();
+  final source = TextEditingController();
   final storageID = TextEditingController();
   final units = TextEditingController();
   final stock = TextEditingController();

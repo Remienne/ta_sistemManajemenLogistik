@@ -26,8 +26,8 @@ class ShowReport extends StatelessWidget {
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Stok', 'Satuan', 'Tanggal Kadaluarsa'];
-    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Stok', 'Satuan'];
+    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Perolehan', 'Stok', 'Satuan', 'Kadaluarsa'];
+    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Asal Perolehan', 'Stok', 'Satuan'];
 
     pdf.addPage(
       pw.Page(
@@ -35,9 +35,13 @@ class ShowReport extends StatelessWidget {
           // Define column widths
           // Define column widths
           Map<int, pw.TableColumnWidth> columnWidths = {
-            0: const pw.FixedColumnWidth(40.0),  // 'No' column
-            3: const pw.FixedColumnWidth(50.0),  // 'No' column
-            4: const pw.FixedColumnWidth(70.0),  // 'No' column
+            0: const pw.FixedColumnWidth(30.0), // 'No' column
+            1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
+            2: const pw.FixedColumnWidth(60.0), // 'Nama' column
+            3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
+            4: const pw.FixedColumnWidth(35.0), // 'stok' column
+            5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
+            6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
             // Add more fields and their corresponding widths
           };
           return pw.Column(
@@ -95,7 +99,10 @@ class ShowReport extends StatelessWidget {
                         // 'No' column
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
-                          child: pw.Text((index + 1).toString()),
+                          child: pw.Text(
+                              (index + 1).toString(),
+                              textAlign: pw.TextAlign.center
+                          ),
                         ),
                         // Data columns
                         ...fieldContentsFrom.map((fieldName) {

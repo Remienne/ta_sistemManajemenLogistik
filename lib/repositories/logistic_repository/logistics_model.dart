@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class LogisticsModel{
   final String? id;
   final String name;
+  final String source;
   final String storageId;
   final String units;
   final double stock;
@@ -15,6 +16,7 @@ class LogisticsModel{
   LogisticsModel({
     this.id,
     required this.name,
+    required this.source,
     required this.storageId,
     required this.units,
     required this.stock,
@@ -28,6 +30,7 @@ class LogisticsModel{
   toJson(){
     return{
       "Nama Barang": name,
+      "Asal Perolehan": source,
       "Rak": storageId,
       "Satuan": units,
       "Stok": stock,
@@ -44,6 +47,7 @@ class LogisticsModel{
     return LogisticsModel(
         id: document.id,
         name: data['Nama Barang'] ?? '',
+        source: data['Asal Perolehan'] ?? '',
         storageId: data['Rak'] ?? '',
         units: data['Satuan'] ?? '',
         stock: double.parse(data['Stok'].toString()),

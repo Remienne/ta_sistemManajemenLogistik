@@ -32,6 +32,7 @@ class _LogisticInputState extends State<LogisticInput> {
 
   // ignore: prefer_typing_uninitialized_variables
   var category, units, _urlItemImage;
+  String validatorNull = 'Kolom tidak boleh kosong!';
   DateTime dateNow = DateTime.now();
   DateTime selectedDate = DateTime.now();
 
@@ -240,7 +241,30 @@ class _LogisticInputState extends State<LogisticInput> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Nama Item tidak boleh kosong!';
+                        return validatorNull;
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  //input asal perolehan
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    controller: logisticController.source,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'Asal Perolehan',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return validatorNull;
                       }
                       return null;
                     },
@@ -257,7 +281,7 @@ class _LogisticInputState extends State<LogisticInput> {
                             autovalidateMode: AutovalidateMode.onUserInteraction,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Stok tidak boleh kosong!';
+                                return validatorNull;
                               }
                               return null;
                             },
@@ -301,7 +325,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (value) {
                                 if (value == null) {
-                                  return 'Please enter some text';
+                                  return validatorNull;
                                 }
                                 return null;
                               },
@@ -335,7 +359,7 @@ class _LogisticInputState extends State<LogisticInput> {
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Nama Item tidak boleh kosong!';
+                              return validatorNull;
                             }
                             return null;
                           },
@@ -389,7 +413,7 @@ class _LogisticInputState extends State<LogisticInput> {
                         ),
                         validator: (value) {
                           if (value == null) {
-                            return 'Pilihan kategori tidak boleh kosong!';
+                            return validatorNull;
                           }
                           return null;
                         },
@@ -426,7 +450,7 @@ class _LogisticInputState extends State<LogisticInput> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Tanggal Kadaluarsa tidak boleh kosong!';
+                          return validatorNull;
                         }
                         return null;
                       },
@@ -463,6 +487,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                   setState(() {
                                     final logistics = LogisticsModel(
                                         name: logisticController.name.text.trim(),
+                                        source: logisticController.source.text.trim(),
                                         storageId: logisticController.storageID.text.trim(),
                                         units: units,
                                         stock: double.parse(logisticController.stock.text.trim()),
@@ -470,7 +495,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                         dateEnd: Timestamp.fromDate(selectedDate),
                                         uploadedDate: Timestamp.fromDate(dateNow),
                                         imgPath: _urlItemImage?? 'Tidak ada gambar',
-                                        officer: userData.name
+                                        officer: userData.name,
                                     );
                                     LogisticInputController.instance.insertItem(logistics);
                                     Get.offAll(() => const LogisticPage());
