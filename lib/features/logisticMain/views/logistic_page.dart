@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/features/pdfReport/show_report.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 import 'logistic_input.dart';
 
@@ -205,11 +208,10 @@ class _LogisticPageState extends State<LogisticPage> {
                                             decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(10),
                                             ),
-                                            child: FadeInImage.assetNetwork(
-                                              placeholder: 'assets/images/no-photo.png',
-                                              image: _resultList[index]['Link Gambar'],
-                                              imageErrorBuilder: (context, error, stackTrace) =>
-                                                  const Image(image: AssetImage('assets/images/no-photo.png'))
+                                            child: CachedNetworkImage(
+                                              imageUrl: _resultList[index]['Link Gambar'],
+                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
                                             )
                                         )
                                     ),
@@ -253,25 +255,38 @@ class _LogisticPageState extends State<LogisticPage> {
               ),
             ],
           ),
-          //fab
-          Positioned(
-            bottom: 16.0, // Adjust the position of the FAB as needed
-            right: 16.0,
-            child: FloatingActionButton(
-                onPressed: () {
-                  Get.off(() => const LogisticInput());
-                },
-                backgroundColor: taAccentColor,
-                foregroundColor: Colors.white,
-                child: Transform.scale(
-                  scale: 1.2,
-                  child: const Icon(Icons.add),
-                )
-            ),
-          )
         ],
       ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
+      floatingActionButton: SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        backgroundColor: taAccentColor,
+        foregroundColor: Colors.white,
+        children: [
+          SpeedDialChild(
+            child: Transform.scale(
+              scale: 1.2,
+              child: const Icon(Icons.add),
+            ),
+            backgroundColor: taAccentColor,
+            foregroundColor: Colors.white,
+            onTap: () {
+              Get.off(() => const LogisticInput());
+            },
+          ),
+          SpeedDialChild(
+            child: Transform.scale(
+              scale: 1.2,
+              child: const Icon(Icons.picture_as_pdf),
+            ),
+            backgroundColor: taAccentColor,
+            foregroundColor: Colors.white,
+            onTap: () {
+              Get.off(() => ShowReport());
+            },
+          ),
+        ],
+      ),
     );
   }
 }
