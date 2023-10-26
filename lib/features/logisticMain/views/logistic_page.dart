@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/features/logisticMain/views/logistic_details_page.dart';
 import 'package:the_app/features/pdfReport/show_report.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 import 'logistic_input.dart';
@@ -38,8 +39,14 @@ class _LogisticPageState extends State<LogisticPage> {
         .instance
         .collection('logistics')
         .get();
+
+    List<Map<String, dynamic>> results = [];
+    for (var doc in data.docs) {
+      results.add(doc.data());
+    }
+
     setState(() {
-      _allResults = data.docs;
+      _allResults = results;
     });
     _searchResultList();
   }
@@ -189,65 +196,73 @@ class _LogisticPageState extends State<LogisticPage> {
                       itemBuilder: (c, index) {
                         DateTime date = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
                         String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
-                        return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Container(
-                                height: 90,
-                                padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                child: Row(
-                                  children: [
-                                    //image
-                                    SizedBox(
-                                        width: 65,
-                                        height: 65,
-                                        child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: CachedNetworkImage(
-                                              imageUrl: _resultList[index]['Link Gambar'],
-                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                            )
-                                        )
-                                    ),
-                                    const SizedBox(width: 20),
-                                    //desc
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _resultList[index]['Nama Barang'],
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize:18,
-                                            ),
-                                          ),
-                                          Text(
-                                            _resultList[index]['Kategori'],
-                                            style: GoogleFonts.poppins(
-                                              fontSize:14,
-                                            ),
-                                          ),
-                                          Text(
-                                            formatted,
-                                            style: GoogleFonts.poppins(
-                                              fontSize:14,
-                                            ),
-                                          ),
-                                        ],
+                        return GestureDetector(
+                          onTap: (){
+                            Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                          },
+                          child: Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              clipBehavior: Clip.antiAlias,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Container(
+                                  height: 90,
+                                  padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                  child: Row(
+                                    children: [
+                                      //image
+                                      SizedBox(
+                                          width: 65,
+                                          height: 65,
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Hero(
+                                                tag: _resultList[index]['Link Gambar'],
+                                                child: CachedNetworkImage(
+                                                  imageUrl: _resultList[index]['Link Gambar'],
+                                                  progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                  errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                )
+                                              )
+                                          )
                                       ),
-                                    )
-                                  ],
-                                )
-                            )
+                                      const SizedBox(width: 20),
+                                      //desc
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _resultList[index]['Nama Barang'],
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize:18,
+                                              ),
+                                            ),
+                                            Text(
+                                              _resultList[index]['Kategori'],
+                                              style: GoogleFonts.poppins(
+                                                fontSize:14,
+                                              ),
+                                            ),
+                                            Text(
+                                              formatted,
+                                              style: GoogleFonts.poppins(
+                                                fontSize:14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              )
+                          ),
                         );
                       },
                     ),
