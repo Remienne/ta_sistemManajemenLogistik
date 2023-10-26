@@ -40,8 +40,8 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    DateTime date = (widget.data['Tanggal Kadaluarsa']).toDate();
-    String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
+    DateTime expirationDate = (widget.data['Tanggal Kadaluarsa']).toDate();
+    String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
 
     return WillPopScope(
       onWillPop: _onBackPressed,
@@ -169,8 +169,12 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
               ),
               Text(
-                formatted,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                expirationDate.isBefore(DateTime.now()) ? '$formatted (Telah Kadaluarsa)' : formatted,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: expirationDate.isBefore(DateTime.now()) ? Colors.redAccent : null
+                ),
               ),
               const SizedBox(height: 20),
 

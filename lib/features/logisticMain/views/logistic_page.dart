@@ -26,27 +26,46 @@ class _LogisticPageState extends State<LogisticPage> {
 
   List _resultList =[];
 
+  List<String> filterOptions = []; // Declare this outside your widget class
+
+  String _selectedSortingOption = 'Default'; // New variable for selected sorting option
+  bool _isFilterChipVisible = false; // New variable to control visibility
+
   @override
   void initState() {
     super.initState();
     getRecords();
     _searchController.addListener(_onSearchChanged);
-    // Your initialization code here
   }
 
   getRecords()async{
-    var data = await FirebaseFirestore
+    var logisticData = await FirebaseFirestore
         .instance
         .collection('logistics')
+        .orderBy("Tanggal Kadaluarsa")
         .get();
 
-    List<Map<String, dynamic>> results = [];
-    for (var doc in data.docs) {
-      results.add(doc.data());
+    List<Map<String, dynamic>> logisticResults = [];
+    for (var doc in logisticData.docs) {
+      logisticResults.add(doc.data());
     }
 
+    var categoryData = await FirebaseFirestore
+        .instance
+        .collection('kategori')
+        .get();
+
+    List<Map<String, dynamic>> categoryResults = [];
+    for (var doc in categoryData.docs) {
+      categoryResults.add(doc.data());
+    }
+
+    // Populate filterOptions with unique values from 'Kategori' field
+    Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
+    filterOptions = uniqueCategories.toList();
+
     setState(() {
-      _allResults = results;
+      _allResults = logisticResults;
     });
     _searchResultList();
   }
@@ -135,7 +154,7 @@ class _LogisticPageState extends State<LogisticPage> {
             children: [
               // Search bar with sort button
               Padding(
-                padding: const EdgeInsets.only(top: 25, left: 15, right: 15, bottom: 20),
+                padding: const EdgeInsets.only(top: 25, left: 15, right: 15, bottom: 8),
                 child: Row(
                   children: [
                     //search bar
@@ -174,19 +193,65 @@ class _LogisticPageState extends State<LogisticPage> {
                     GestureDetector(
                       onTap: () {
                         // Implement the sort button function
+                        _toggleFilterChipVisibility();
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _isFilterChipVisible ? taAccentColor : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.sort),
+                        child: Icon(Icons.sort, color: _isFilterChipVisible ? Colors.white : Colors.black),
                       ),
                     ),
                   ],
                 ),
               ),
+
+              // FilterChips
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: _isFilterChipVisible
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 8),
+                        child: Wrap(
+                          spacing: 8.0, // Adjust spacing as needed
+                          children: [
+                            for (int i = 0; i < filterOptions.length; i++)
+                              FilterChip(
+                                label: Text(
+                                  filterOptions[i],
+                                  style: TextStyle(
+                                    color: _selectedSortingOption == filterOptions[i] ? Colors.white : null,
+                                  ),
+                                ),
+                                selected: _selectedSortingOption == filterOptions[i],
+                                onSelected: (selected) {
+                                  _updateSortingOption(filterOptions[i]);
+                                },
+                                backgroundColor: Colors.white,
+                                selectedColor: taAccentColor,
+                                checkmarkColor: _selectedSortingOption == filterOptions[i] ? Colors.white : null,
+                              ),
+                            if (filterOptions.isNotEmpty) // Ensure the list is not empty
+                              IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _clearSortingOption();
+                                },
+                              ),
+                          ],
+                        ),
+                      )
+                    : Container(padding: const EdgeInsets.only(top: 20)),
+              ),
+
               // item list
               Expanded(
                   child: Padding(
@@ -194,76 +259,161 @@ class _LogisticPageState extends State<LogisticPage> {
                     child: ListView.builder(
                       itemCount: _resultList.length,
                       itemBuilder: (c, index) {
-                        DateTime date = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
-                        String formatted = DateFormat('EEEE, d MMMM yyyy').format(date);
-                        return GestureDetector(
-                          onTap: (){
-                            Get.to(() => LogisticDetailsPage(data: _resultList[index]));
-                          },
-                          child: Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              clipBehavior: Clip.antiAlias,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Container(
-                                  height: 90,
-                                  padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                  child: Row(
-                                    children: [
-                                      //image
-                                      SizedBox(
-                                          width: 65,
-                                          height: 65,
-                                          child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: Hero(
-                                                tag: _resultList[index]['Link Gambar'],
-                                                child: CachedNetworkImage(
-                                                  imageUrl: _resultList[index]['Link Gambar'],
-                                                  progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                  errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                                )
-                                              )
-                                          )
-                                      ),
-                                      const SizedBox(width: 20),
-                                      //desc
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                        DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
+                        bool isExpired = expirationDate.isBefore(DateTime.now());
+                        String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+
+                        // Check if the current item is expired
+                        if (isExpired) {
+                          // Expired item UI
+                          return Column(
+                            children: [
+                              GestureDetector(
+                                onTap: (){
+                                  Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                },
+                                child: Card(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    clipBehavior: Clip.antiAlias,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Container(
+                                        height: 90,
+                                        padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              _resultList[index]['Nama Barang'],
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize:18,
-                                              ),
+                                            //image
+                                            SizedBox(
+                                                width: 65,
+                                                height: 65,
+                                                child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                    child: Hero(
+                                                        tag: _resultList[index]['Link Gambar'],
+                                                        child: CachedNetworkImage(
+                                                          imageUrl: _resultList[index]['Link Gambar'],
+                                                          progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                          errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                        )
+                                                    )
+                                                )
                                             ),
-                                            Text(
-                                              _resultList[index]['Kategori'],
-                                              style: GoogleFonts.poppins(
-                                                fontSize:14,
+                                            const SizedBox(width: 20),
+                                            //desc
+                                            Expanded(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    _resultList[index]['Nama Barang'],
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize:18,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _resultList[index]['Kategori'],
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize:14,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Kadaluarsa',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize:14,
+                                                      color: Colors.redAccent
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                            Text(
-                                              formatted,
-                                              style: GoogleFonts.poppins(
-                                                fontSize:14,
-                                              ),
-                                            ),
+                                            )
                                           ],
-                                        ),
-                                      )
-                                    ],
-                                  )
-                              )
-                          ),
-                        );
+                                        )
+                                    )
+                                ),
+                              ), // Divider for expired items
+                            ],
+                          );
+                        } else {
+                          // Not expired item UI
+                          return Column(
+                            children: [
+                              GestureDetector(
+                                onTap: (){
+                                  Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                },
+                                child: Card(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    clipBehavior: Clip.antiAlias,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Container(
+                                        height: 90,
+                                        padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                        child: Row(
+                                          children: [
+                                            //image
+                                            SizedBox(
+                                                width: 65,
+                                                height: 65,
+                                                child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                    child: Hero(
+                                                        tag: _resultList[index]['Link Gambar'],
+                                                        child: CachedNetworkImage(
+                                                          imageUrl: _resultList[index]['Link Gambar'],
+                                                          progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                          errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                        )
+                                                    )
+                                                )
+                                            ),
+                                            const SizedBox(width: 20),
+                                            //desc
+                                            Expanded(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    _resultList[index]['Nama Barang'],
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize:18,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _resultList[index]['Kategori'],
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize:14,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    formatted,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize:14,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                    )
+                                ),
+                              ),
+                            ],
+                          );
+                        }
                       },
                     ),
                   )
@@ -304,6 +454,67 @@ class _LogisticPageState extends State<LogisticPage> {
       ),
     );
   }
+
+  // Function to update the selected sorting option
+  void _updateSortingOption(String option) {
+    setState(() {
+      _selectedSortingOption = option;
+      // Call your sorting function here based on the selected option
+      // sortData(option);
+    });
+  }
+
+  void _clearSortingOption() {
+    setState(() {
+      _selectedSortingOption = 'Default';
+    });
+  }
+
+  // Function to show the sorting options
+  void _showSortingOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Sort By',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                title: const Text('Option 1'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _updateSortingOption('Option 1');
+                },
+              ),
+              ListTile(
+                title: const Text('Option 2'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _updateSortingOption('Option 2');
+                },
+              ),
+              // Add more options as needed
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Function to toggle FilterChip visibility
+  void _toggleFilterChipVisibility() {
+    setState(() {
+      _isFilterChipVisible = !_isFilterChipVisible;
+    });
+  }
+
 }
 
 class CustomBottomNavigationBar extends StatelessWidget {
