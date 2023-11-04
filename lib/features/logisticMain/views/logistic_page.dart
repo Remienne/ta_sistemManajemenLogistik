@@ -26,10 +26,11 @@ class _LogisticPageState extends State<LogisticPage> {
 
   List _resultList =[];
 
-  List<String> filterOptions = []; // Declare this outside your widget class
+  List<String> _filterOptions = []; // catch from firebase
 
-  String _selectedSortingOption = 'Default'; // New variable for selected sorting option
-  bool _isFilterChipVisible = false; // New variable to control visibility
+  final List<String> _selectedFilterOption = []; // New variable for selected filter option
+
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -39,10 +40,40 @@ class _LogisticPageState extends State<LogisticPage> {
   }
 
   getRecords()async{
-    var logisticData = await FirebaseFirestore
-        .instance
-        .collection('logistics')
-        .orderBy("Tanggal Kadaluarsa")
+    setState(() {
+      _isLoading = true;
+    });
+
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistics');
+
+    // Check if there are selected filter options
+    if (_selectedFilterOption.isNotEmpty) {
+      // If only one filter option is selected, use normal where
+      if (_selectedFilterOption.length == 1) {
+        query = query.where('Kategori', isEqualTo: _selectedFilterOption[0]);
+      }
+      else {
+        // If more than one filter option is selected, use Filter.or
+
+        // insert all Filter functions in the List below, then...
+        List<Filter> filters = [];
+        for (String option in _selectedFilterOption) {
+          filters.add(Filter('Kategori', isEqualTo: option));
+        }
+
+        // Apply Filter.or to all filters
+        Filter orCondition = Filter.or(filters[0],filters[1]);
+        for (int i = 1; i < filters.length; i++) {
+          orCondition = Filter.or(orCondition, filters[i]);
+        }
+
+        //combine all queries
+        query = query.where(orCondition);
+      }
+    }
+
+    var logisticData = await query
+        .orderBy('Tanggal Kadaluarsa')
         .get();
 
     List<Map<String, dynamic>> logisticResults = [];
@@ -62,10 +93,11 @@ class _LogisticPageState extends State<LogisticPage> {
 
     // Populate filterOptions with unique values from 'Kategori' field
     Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
-    filterOptions = uniqueCategories.toList();
+    _filterOptions = uniqueCategories.toList();
 
     setState(() {
       _allResults = logisticResults;
+      _isLoading = false;
     });
     _searchResultList();
   }
@@ -193,229 +225,198 @@ class _LogisticPageState extends State<LogisticPage> {
                     GestureDetector(
                       onTap: () {
                         // Implement the sort button function
-                        _toggleFilterChipVisibility();
+                        _showFilterPopup(context);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _isFilterChipVisible ? taAccentColor : Colors.white,
+                          color: _selectedFilterOption == [] ? taAccentColor : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.sort, color: _isFilterChipVisible ? Colors.white : Colors.black),
+                        child: Icon(Icons.sort, color: _selectedFilterOption == [] ? Colors.white : Colors.black),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // FilterChips
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 500),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-                child: _isFilterChipVisible
-                    ? Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 10, bottom: 8),
-                        child: Wrap(
-                          spacing: 8.0, // Adjust spacing as needed
-                          children: [
-                            for (int i = 0; i < filterOptions.length; i++)
-                              FilterChip(
-                                label: Text(
-                                  filterOptions[i],
-                                  style: TextStyle(
-                                    color: _selectedSortingOption == filterOptions[i] ? Colors.white : null,
-                                  ),
-                                ),
-                                selected: _selectedSortingOption == filterOptions[i],
-                                onSelected: (selected) {
-                                  _updateSortingOption(filterOptions[i]);
-                                },
-                                backgroundColor: Colors.white,
-                                selectedColor: taAccentColor,
-                                checkmarkColor: _selectedSortingOption == filterOptions[i] ? Colors.white : null,
-                              ),
-                            if (filterOptions.isNotEmpty) // Ensure the list is not empty
-                              IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _clearSortingOption();
-                                },
-                              ),
-                          ],
-                        ),
-                      )
-                    : Container(padding: const EdgeInsets.only(top: 20)),
-              ),
-
               // item list
               Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 15),
-                    child: ListView.builder(
-                      itemCount: _resultList.length,
-                      itemBuilder: (c, index) {
-                        DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
-                        bool isExpired = expirationDate.isBefore(DateTime.now());
-                        String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
-
-                        // Check if the current item is expired
-                        if (isExpired) {
-                          // Expired item UI
-                          return Column(
-                            children: [
-                              GestureDetector(
-                                onTap: (){
-                                  Get.to(() => LogisticDetailsPage(data: _resultList[index]));
-                                },
-                                child: Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Container(
-                                        height: 90,
-                                        padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                        child: Row(
-                                          children: [
-                                            //image
-                                            SizedBox(
-                                                width: 65,
-                                                height: 65,
-                                                child: Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    child: Hero(
-                                                        tag: _resultList[index]['Link Gambar'],
-                                                        child: CachedNetworkImage(
-                                                          imageUrl: _resultList[index]['Link Gambar'],
-                                                          progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                          errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                                        )
-                                                    )
-                                                )
-                                            ),
-                                            const SizedBox(width: 20),
-                                            //desc
-                                            Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    _resultList[index]['Nama Barang'],
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontSize:18,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    _resultList[index]['Kategori'],
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    'Kadaluarsa',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                      color: Colors.redAccent
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        )
-                                    )
-                                ),
-                              ), // Divider for expired items
-                            ],
-                          );
-                        } else {
-                          // Not expired item UI
-                          return Column(
-                            children: [
-                              GestureDetector(
-                                onTap: (){
-                                  Get.to(() => LogisticDetailsPage(data: _resultList[index]));
-                                },
-                                child: Card(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Container(
-                                        height: 90,
-                                        padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                        child: Row(
-                                          children: [
-                                            //image
-                                            SizedBox(
-                                                width: 65,
-                                                height: 65,
-                                                child: Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    child: Hero(
-                                                        tag: _resultList[index]['Link Gambar'],
-                                                        child: CachedNetworkImage(
-                                                          imageUrl: _resultList[index]['Link Gambar'],
-                                                          progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                          errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                                        )
-                                                    )
-                                                )
-                                            ),
-                                            const SizedBox(width: 20),
-                                            //desc
-                                            Expanded(
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    _resultList[index]['Nama Barang'],
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: GoogleFonts.poppins(
-                                                      fontWeight: FontWeight.w600,
-                                                      fontSize:18,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    _resultList[index]['Kategori'],
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    formatted,
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize:14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        )
-                                    )
-                                ),
+                    padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator(),)
+                        : _resultList.isEmpty
+                          ? Center(
+                            child: Text(
+                              'Data tidak ditemukan!',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
-                          );
-                        }
-                      },
-                    ),
+                            ),
+                      )
+                          : ListView.builder(
+                        itemCount: _resultList.length,
+                        itemBuilder: (c, index) {
+                          DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
+                          bool isExpired = expirationDate.isBefore(DateTime.now());
+                          String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+
+                          // Check if the current item is expired
+                          if (isExpired) {
+                            // Expired item UI
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: (){
+                                    Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                  },
+                                  child: Card(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      clipBehavior: Clip.antiAlias,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Container(
+                                          height: 90,
+                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                          child: Row(
+                                            children: [
+                                              //image
+                                              SizedBox(
+                                                  width: 65,
+                                                  height: 65,
+                                                  child: Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      child: Hero(
+                                                          tag: _resultList[index]['Link Gambar'],
+                                                          child: CachedNetworkImage(
+                                                            imageUrl: _resultList[index]['Link Gambar'],
+                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                          )
+                                                      )
+                                                  )
+                                              ),
+                                              const SizedBox(width: 20),
+                                              //desc
+                                              Expanded(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      _resultList[index]['Nama Barang'],
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w600,
+                                                        fontSize:18,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      _resultList[index]['Kategori'],
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize:14,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      'Kadaluarsa',
+                                                      style: GoogleFonts.poppins(
+                                                          fontSize:14,
+                                                          color: Colors.redAccent
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                      )
+                                  ),
+                                ), // Divider for expired items
+                              ],
+                            );
+                          }
+                          else {
+                            // Not expired item UI
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: (){
+                                    Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                  },
+                                  child: Card(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      clipBehavior: Clip.antiAlias,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Container(
+                                          height: 90,
+                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                          child: Row(
+                                            children: [
+                                              //image
+                                              SizedBox(
+                                                  width: 65,
+                                                  height: 65,
+                                                  child: Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      child: Hero(
+                                                          tag: _resultList[index]['Link Gambar'],
+                                                          child: CachedNetworkImage(
+                                                            imageUrl: _resultList[index]['Link Gambar'],
+                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                          )
+                                                      )
+                                                  )
+                                              ),
+                                              const SizedBox(width: 20),
+                                              //desc
+                                              Expanded(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      _resultList[index]['Nama Barang'],
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: GoogleFonts.poppins(
+                                                        fontWeight: FontWeight.w600,
+                                                        fontSize:18,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      _resultList[index]['Kategori'],
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize:14,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      formatted,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize:14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                      )
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                   )
               ),
             ],
@@ -455,66 +456,93 @@ class _LogisticPageState extends State<LogisticPage> {
     );
   }
 
-  // Function to update the selected sorting option
-  void _updateSortingOption(String option) {
-    setState(() {
-      _selectedSortingOption = option;
-      // Call your sorting function here based on the selected option
-      // sortData(option);
-    });
-  }
-
-  void _clearSortingOption() {
-    setState(() {
-      _selectedSortingOption = 'Default';
-    });
-  }
-
-  // Function to show the sorting options
-  void _showSortingOptions(BuildContext context) {
-    showModalBottomSheet(
+  void _showFilterPopup(BuildContext context) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Sort By',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                title: const Text('Option 1'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _updateSortingOption('Option 1');
-                },
-              ),
-              ListTile(
-                title: const Text('Option 2'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _updateSortingOption('Option 2');
-                },
-              ),
-              // Add more options as needed
-            ],
-          ),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Kategori'),
+              content: _buildFilterChips(setState),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedFilterOption.clear();
+                    });
+                    debugPrint('Selected options: $_selectedFilterOption');
+                  },
+                  child: Text(
+                    'Hapus',
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w400,
+                      fontSize:14,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (){
+                    setState(() {
+                      getRecords();
+                    });
+                    Get.back();
+                    debugPrint('Selected options: $_selectedFilterOption');
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: taAccentColor,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      )
+                  ),
+                  child: Text(
+                    'Terapkan',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.normal,
+                      fontSize:14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 5,)
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  // Function to toggle FilterChip visibility
-  void _toggleFilterChipVisibility() {
-    setState(() {
-      _isFilterChipVisible = !_isFilterChipVisible;
-    });
+  Widget _buildFilterChips(StateSetter setState) {
+    return Wrap(
+      spacing: 8.0,
+      children: [
+        for (String option in _filterOptions)
+          FilterChip(
+            label: Text(
+              option,
+              style: TextStyle(
+                color: _selectedFilterOption.contains(option) ? Colors.white : null,
+              ),
+            ),
+            selected: _selectedFilterOption.contains(option),
+            onSelected: (selected) {
+              setState(() {
+                if (selected && !_selectedFilterOption.contains(option)) {
+                  _selectedFilterOption.add(option);
+                } else if (!selected && _selectedFilterOption.contains(option)){
+                  _selectedFilterOption.remove(option);
+                }
+              });
+            },
+            backgroundColor: taBackgroundColor,
+            selectedColor: taAccentColor,
+            checkmarkColor: _selectedFilterOption.contains(option) ? Colors.white : null,
+          ),
+      ],
+    );
   }
-
 }
 
 class CustomBottomNavigationBar extends StatelessWidget {
