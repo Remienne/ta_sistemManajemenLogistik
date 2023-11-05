@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:the_app/features/authentication/views/login_page.dart';
-import 'package:the_app/features/logisticMain/views/logistic_page.dart';
+import 'package:the_app/features/logisticMain/views/logistic_main.dart';
+import 'package:the_app/features/logisticMain/views/logistic_in.dart';
 
 class AuthenticationRepository extends GetxController{
   static AuthenticationRepository get instance => Get.find();
@@ -20,7 +21,7 @@ class AuthenticationRepository extends GetxController{
   }
 
   _setInitialScreen(User? user){
-    user == null ? Get.offAll(() => const LoginPage()) : Get.offAll(() => const LogisticPage());
+    user == null ? Get.offAll(() => const LoginPage()) : Get.offAll(() => const LogisticMain());
   }
 
   Future<void> login(String email, String password) async{

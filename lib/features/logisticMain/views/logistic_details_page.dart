@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
 
-import 'logistic_page.dart';
+import 'logistic_in.dart';
 
 class LogisticDetailsPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -216,7 +216,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   }
 
   Future<bool> _onBackPressed() {
-    Get.offAll(const LogisticPage());
+    Get.offAll(const LogisticIn());
     return Future.value(false);
   }
 }

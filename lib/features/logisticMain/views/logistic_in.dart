@@ -8,18 +8,16 @@ import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/features/logisticMain/views/logistic_details_page.dart';
 import 'package:the_app/features/pdfReport/show_report.dart';
-import 'package:the_app/repositories/authentication_repository.dart';
 import 'logistic_input.dart';
 
-class LogisticPage extends StatefulWidget {
-  static const routeName = '/logistic';
-  const LogisticPage({super.key});
+class LogisticIn extends StatefulWidget {
+  const LogisticIn({super.key});
 
   @override
-  State<LogisticPage> createState() => _LogisticPageState();
+  State<LogisticIn> createState() => _LogisticInState();
 }
 
-class _LogisticPageState extends State<LogisticPage> {
+class _LogisticInState extends State<LogisticIn> {
   final TextEditingController _searchController = TextEditingController();
 
   List _allResults =[];
@@ -144,41 +142,7 @@ class _LogisticPageState extends State<LogisticPage> {
   @override
   Widget build(BuildContext context) {
 
-    var screenWidth = MediaQuery.of(context).size.width;
-    var screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: screenHeight * 0.08,
-        elevation: 0,
-        title: Container(
-          margin: EdgeInsets.only(left: screenWidth * 0.02, bottom: screenHeight * 0.01),
-          child: Text(
-            "Manajemen \nLogistik",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              height: 1.1,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
-        backgroundColor: taPrimaryColor,
-        actions: [
-          IconButton(
-            onPressed: () => AuthenticationRepository().logout(),
-            icon: const Icon(Icons.logout),
-          )
-        ],
-      ),
-
-      backgroundColor: taBackgroundColor,
-
       body: Stack(
         children: [
           //body
@@ -423,7 +387,6 @@ class _LogisticPageState extends State<LogisticPage> {
           ),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavigationBar(),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
         backgroundColor: taAccentColor,
@@ -464,6 +427,9 @@ class _LogisticPageState extends State<LogisticPage> {
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
               title: const Text('Kategori'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+              ),
               content: _buildFilterChips(setState),
               actions: [
                 TextButton(
@@ -541,45 +507,6 @@ class _LogisticPageState extends State<LogisticPage> {
             checkmarkColor: _selectedFilterOption.contains(option) ? Colors.white : null,
           ),
       ],
-    );
-  }
-}
-
-class CustomBottomNavigationBar extends StatelessWidget {
-  const CustomBottomNavigationBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    var screenHeight = MediaQuery.of(context).size.height;
-    return Container(
-      height: screenHeight * 0.08,
-      decoration: const BoxDecoration(
-        color: taAccentColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16.0),
-          topRight: Radius.circular(16.0),
-        ),
-      ),
-      child: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Explore',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        selectedItemColor: Colors.white, // Customize selected item color
-        unselectedItemColor: Colors.grey, // Customize unselected item color
-        backgroundColor: Colors.transparent, // Make background transparent
-        elevation: 0,
-      ),
     );
   }
 }
