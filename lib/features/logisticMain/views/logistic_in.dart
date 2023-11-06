@@ -1,14 +1,20 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdfx/pdfx.dart';
+import 'package:share/share.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/constants/img_path.dart';
 import 'package:the_app/features/logisticMain/views/logistic_details_page.dart';
-import 'package:the_app/features/pdfReport/show_report.dart';
 import 'logistic_input.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class LogisticIn extends StatefulWidget {
   const LogisticIn({super.key});
@@ -123,6 +129,203 @@ class _LogisticInState extends State<LogisticIn> {
       _resultList = showResult;
     });
 
+  }
+
+  Future<void> generatePDF() async {
+
+    // Generate PDF and fetch a Logo
+    final pdf = pw.Document();
+    final ByteData image = await rootBundle.load(taSplashImage);
+    Uint8List imageData = (image).buffer.asUint8List();
+
+    // Specify the fields you want to include in the PDF
+    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Perolehan', 'Stok', 'Satuan', 'Kadaluarsa'];
+    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Asal Perolehan', 'Stok', 'Satuan'];
+
+    DateTime dateNow = DateTime.now();
+    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
+
+    pdf.addPage(
+      pw.Page(
+        build: (context) {
+          // Define column widths
+          // Define column widths
+          Map<int, pw.TableColumnWidth> columnWidths = {
+            0: const pw.FixedColumnWidth(30.0), // 'No' column
+            1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
+            2: const pw.FixedColumnWidth(60.0), // 'Nama' column
+            3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
+            4: const pw.FixedColumnWidth(35.0), // 'stok' column
+            5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
+            6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
+            // Add more fields and their corresponding widths
+          };
+          return pw.Column(
+              children: [
+                pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(
+                      children: [
+                        pw.Image(
+                            pw.MemoryImage(imageData),
+                            height: 70,
+                            width: 70
+                        ),
+                        pw.SizedBox(width: 20),
+                        pw.Column(
+                          children: [
+                            pw.SizedBox(height: 20),
+                            pw.Text(
+                              'PEMERINTAH KABUPATEN MALANG',
+                              style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.normal),
+                            ),
+                            pw.Text(
+                              'BADAN PENANGGULANGAN BENCANA DAERAH',
+                              style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.bold),
+                            ),
+                            pw.Text(
+                              'Jl. Trunojoyo Kav.8 Telp. (0341) 392220 fax. (0341) 392121 Kepanjen',
+                              style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.normal),
+                            ),
+                            pw.Text(
+                              'Website : http://www.malangkab.go.id Email: bpbdkabupatenmalang@yahoo.co.id',
+                              style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic),
+                            ),
+                            pw.Text(
+                              'KEPANJEN - 65163',
+                              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+                            ),
+                          ]
+                        )
+                      ],
+                    ),
+                    pw.Divider(thickness: 1),
+                    pw.SizedBox(height: 20),
+                    pw.Column(
+                      children: [
+                        pw.Text(
+                          'Laporan Logistik Masuk',
+                          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          formattedDateNow,
+                          style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic),
+                        ),
+                      ],
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    ),
+                  ],
+                ),
+
+                pw.SizedBox(height: 20),
+
+                pw.Table(
+                  defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                  border: pw.TableBorder.all(),
+                  columnWidths: columnWidths,
+                  children: [
+                    pw.TableRow(
+                      children: fieldName.map((fields) {
+                        return pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                              fields,
+                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                              textAlign: pw.TextAlign.center
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    // Data rows
+                    ..._allResults.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Map<String, dynamic> row = entry.value;
+
+                      DateTime expiryDate = (row['Tanggal Kadaluarsa']).toDate();
+                      String formattedExpiryDate = DateFormat('EEEE, d MMMM yyyy').format(expiryDate);
+
+                      return pw.TableRow(
+                        children: [
+                          // 'No' column
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                                (index + 1).toString(),
+                                textAlign: pw.TextAlign.center
+                            ),
+                          ),
+                          // Data columns
+                          ...fieldContentsFrom.map((fieldName) {
+                            final fieldValue = row[fieldName];
+
+                            // Check if the field is a number and convert it to int
+                            final formattedValue = fieldValue is num ? fieldValue.toInt().toString() : fieldValue.toString();
+
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.all(8),
+                              child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
+                            );
+                          }).toList(),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ]
+          );
+        },
+      ),
+    );
+
+    // Save the PDF to Documents directory
+    final output = await getApplicationDocumentsDirectory();
+    final file = File("${output.path}/Laporan Logistik Masuk.pdf");
+
+    final bytes = await pdf.save(); // Await here to get the actual bytes
+
+    await file.writeAsBytes(bytes);
+
+    final pdfPinchController = PdfControllerPinch(
+      document: PdfDocument.openFile(file.path),
+    );
+
+    if(context.mounted){
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 400,
+              child: PdfViewPinch(controller: pdfPinchController,),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close Preview'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();// Close the preview
+                  // Share the PDF file
+                  Share.shareFiles([file.path]);
+                },
+                child: const Text('Share'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -411,7 +614,7 @@ class _LogisticInState extends State<LogisticIn> {
             backgroundColor: taAccentColor,
             foregroundColor: Colors.white,
             onTap: () {
-              Get.off(() => ShowReport());
+              generatePDF();
             },
           ),
         ],
