@@ -26,15 +26,26 @@ class LogisticIn extends StatefulWidget {
 class _LogisticInState extends State<LogisticIn> {
   final TextEditingController _searchController = TextEditingController();
 
-  List _allResults =[];
+  List _allResults =[]; //temporary array list for storing values from firebase
 
-  List _resultList =[];
+  List _resultList =[]; //second temporary array list to fetch the values from _allResults[],
+                        // and then the value of this list would be used to show the final results of the data lists
 
-  List<String> _filterOptions = []; // catch from firebase
+  List<String> _filterOptions = []; // temporary string list for storing filter options
 
-  final List<String> _selectedFilterOption = []; // New variable for selected filter option
+  final List<String> _selectedFilterOption = []; // New variable for selected filter option/s
 
-  bool _isLoading = true;
+  bool _isLoading = true; //loading state
+
+  bool areFiltersApplied() {
+    return _selectedFilterOption.isNotEmpty;
+  } //filter options selected checker
+
+  Color _sortButtonColor = Colors.white; // Default color of the sorting button
+  Color _sortIconColor = Colors.black; // Default color of the sorting button
+
+  bool _shouldUpdateSortButtonColor = false;
+
 
   @override
   void initState() {
@@ -397,10 +408,10 @@ class _LogisticInState extends State<LogisticIn> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _selectedFilterOption == [] ? taAccentColor : Colors.white,
+                          color: _sortButtonColor,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.sort, color: _selectedFilterOption == [] ? Colors.white : Colors.black),
+                        child: Icon(Icons.sort, color: _sortIconColor),
                       ),
                     ),
                   ],
@@ -655,6 +666,8 @@ class _LogisticInState extends State<LogisticIn> {
                   onPressed: (){
                     setState(() {
                       getRecords();
+                      _shouldUpdateSortButtonColor = true;
+                      _updateSortButtonColor();
                     });
                     Get.back();
                     debugPrint('Selected options: $_selectedFilterOption');
@@ -681,6 +694,19 @@ class _LogisticInState extends State<LogisticIn> {
         );
       },
     );
+  }
+
+  void _updateSortButtonColor() {
+    setState(() {
+      // Check if filters are applied and update the sort button color
+      // Here you can customize the color based on your preference
+      if (_shouldUpdateSortButtonColor) {
+        setState(() {
+          _sortButtonColor = areFiltersApplied() ? taAccentColor : Colors.white;
+          _sortIconColor = areFiltersApplied() ? Colors.white : Colors.black;
+        });
+      }
+    });
   }
 
   Widget _buildFilterChips(StateSetter setState) {

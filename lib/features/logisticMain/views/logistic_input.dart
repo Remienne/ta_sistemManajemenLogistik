@@ -548,7 +548,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               ),
                             ),
                             DialogButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Get.back(),
                               color: Colors.white,
                               child: const Text(
                                 "Tidak",

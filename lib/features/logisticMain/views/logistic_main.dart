@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
@@ -59,8 +61,33 @@ class _LogisticMainState extends State<LogisticMain> {
         backgroundColor: taPrimaryColor,
         actions: [
           IconButton(
-            onPressed: () => AuthenticationRepository().logout(),
-            icon: const Icon(Icons.logout),
+            onPressed: () => Alert(
+              context: context,
+              type: AlertType.warning,
+              title: "PERINGATAN!",
+              desc: "Apakah anda yakin ingin logout?",
+              buttons: [
+                DialogButton(
+                  onPressed: () {
+                    AuthenticationRepository().logout();
+                  },
+                  color: taPrimaryColor,
+                  child: const Text(
+                    "Ya",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ),
+                DialogButton(
+                  onPressed: () => Get.back(),
+                  color: Colors.white,
+                  child: const Text(
+                    "Tidak",
+                    style: TextStyle(color: taPrimaryColor),
+                  ),
+                ),
+              ],
+            ).show(),
+            icon: const Icon(Icons.logout, color: Colors.white,),
           )
         ],
       ),
