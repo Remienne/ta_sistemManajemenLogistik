@@ -352,6 +352,22 @@ class _LogisticInState extends State<LogisticIn> {
 
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistikMasuk');
 
+    var logisticData = await query
+        .orderBy('Kategori')
+        .orderBy('Nama Barang')
+        .get();
+
+    List<Map<String, dynamic>> logisticResults = [];
+    for (var doc in logisticData.docs) {
+      logisticResults.add(doc.data());
+    }
+
+    setState(() {
+      _allResults = logisticResults;
+      _isLoading = false;
+    });
+    _searchResultList();
+
     // Check if there are selected filter options
     if (_selectedFilterOption.isNotEmpty) {
       // If only one filter option is selected, use normal where
@@ -378,15 +394,6 @@ class _LogisticInState extends State<LogisticIn> {
       }
     }
 
-    var logisticData = await query
-        .orderBy('Tanggal Kadaluarsa')
-        .get();
-
-    List<Map<String, dynamic>> logisticResults = [];
-    for (var doc in logisticData.docs) {
-      logisticResults.add(doc.data());
-    }
-
     var categoryData = await FirebaseFirestore
         .instance
         .collection('kategori')
@@ -400,12 +407,6 @@ class _LogisticInState extends State<LogisticIn> {
     // Populate filterOptions with unique values from 'Kategori' field
     Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
     _filterOptions = uniqueCategories.toList();
-
-    setState(() {
-      _allResults = logisticResults;
-      _isLoading = false;
-    });
-    _searchResultList();
   }
 
   _onSearchChanged() {
@@ -440,8 +441,8 @@ class _LogisticInState extends State<LogisticIn> {
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Perolehan', 'Stok', 'Satuan', 'Kadaluarsa'];
-    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Asal Perolehan', 'Stok', 'Satuan'];
+    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori'];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
@@ -469,12 +470,12 @@ class _LogisticInState extends State<LogisticIn> {
             // Table contents column widths
             Map<int, pw.TableColumnWidth> customColumnWidths = {
               0: const pw.FixedColumnWidth(30.0), // 'No' column
-              1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
-              2: const pw.FixedColumnWidth(60.0), // 'Nama' column
-              3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
-              4: const pw.FixedColumnWidth(35.0), // 'stok' column
-              5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
-              6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
+              1: const pw.FixedColumnWidth(55.0), // 'Nama' column
+              2: const pw.FixedColumnWidth(42.0), // 'stok' column
+              3: const pw.FixedColumnWidth(40.0), // 'Satuan' column
+              4: const pw.FixedColumnWidth(53.0), // 'Jenis Barang' column
+              5: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
+              6: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
               // Add more fields and their corresponding widths
             };
 
@@ -595,6 +596,10 @@ class _LogisticInState extends State<LogisticIn> {
                                 padding: const pw.EdgeInsets.all(8),
                                 child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
                               ),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(row['Asal Perolehan'], textAlign: pw.TextAlign.center),
+                              ),
                             ],
                           );
                         }).toList(),
@@ -663,7 +668,7 @@ class _LogisticInState extends State<LogisticIn> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
               ),
-              content: _buildFilterChips(setState),
+              content: _buildFilterContents(setState),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -728,7 +733,7 @@ class _LogisticInState extends State<LogisticIn> {
     });
   }
 
-  Widget _buildFilterChips(StateSetter setState) {
+  Widget _buildFilterContents(StateSetter setState) {
     return Wrap(
       spacing: 8.0,
       children: [
@@ -757,4 +762,6 @@ class _LogisticInState extends State<LogisticIn> {
       ],
     );
   }
+
+
 }
