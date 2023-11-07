@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:the_app/repositories/logistic_repository/logistics_model.dart';
+import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
 
 class LogisticDb extends GetxController{
   static LogisticDb get instance => Get.find();
-  final _db = FirebaseFirestore.instance.collection('logistics');
+  final _db = FirebaseFirestore.instance.collection('logistikMasuk');
 
   insertLogisticAlert(LogisticsModel logistics) async {
     await _db.add(logistics.toJson()).whenComplete(() {

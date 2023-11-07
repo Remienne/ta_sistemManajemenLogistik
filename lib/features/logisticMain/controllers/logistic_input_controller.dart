@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_app/repositories/logistic_repository/logistic_db.dart';
-import 'package:the_app/repositories/logistic_repository/logistics_model.dart';
+import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
 
 class LogisticInputController extends GetxController{
   static LogisticInputController get instance => Get.find();

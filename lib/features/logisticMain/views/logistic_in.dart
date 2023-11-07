@@ -350,7 +350,7 @@ class _LogisticInState extends State<LogisticIn> {
       _isLoading = true;
     });
 
-    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistics');
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistikMasuk');
 
     // Check if there are selected filter options
     if (_selectedFilterOption.isNotEmpty) {

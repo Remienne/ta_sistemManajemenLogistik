@@ -10,7 +10,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/features/logisticMain/controllers/user_controller.dart';
 import 'package:the_app/features/logisticMain/views/logistic_in.dart';
-import 'package:the_app/repositories/logistic_repository/logistics_model.dart';
+import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
 import 'package:the_app/features/logisticMain/controllers/logistic_input_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
