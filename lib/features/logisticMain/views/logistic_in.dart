@@ -92,7 +92,7 @@ class _LogisticInState extends State<LogisticIn> {
               // item list
               Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 15, top: 20),
+                    padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 7),
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator(),)
                         : _resultList.isEmpty
@@ -434,7 +434,6 @@ class _LogisticInState extends State<LogisticIn> {
   }
 
   Future<void> generatePDF() async {
-
     // Generate PDF and fetch a Logo
     final pdf = pw.Document();
     final ByteData image = await rootBundle.load(taSplashImage);
@@ -447,144 +446,167 @@ class _LogisticInState extends State<LogisticIn> {
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
 
-    pdf.addPage(
-      pw.Page(
-        build: (context) {
-          // Define column widths
-          // Define column widths
-          Map<int, pw.TableColumnWidth> columnWidths = {
-            0: const pw.FixedColumnWidth(30.0), // 'No' column
-            1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
-            2: const pw.FixedColumnWidth(60.0), // 'Nama' column
-            3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
-            4: const pw.FixedColumnWidth(35.0), // 'stok' column
-            5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
-            6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
-            // Add more fields and their corresponding widths
-          };
-          return pw.Column(
-              children: [
-                pw.Column(
-                  mainAxisAlignment: pw.MainAxisAlignment.start,
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+    // Set the number of rows you want to display on each page
+    const int rowsPerPage = 8;
+
+    // Calculate the number of pages needed
+    final int pageCount = (_allResults.length / rowsPerPage).ceil();
+
+    for (int currentPage = 0; currentPage < pageCount; currentPage++) {
+      pdf.addPage(
+        pw.MultiPage(
+          build: (context) {
+            // Calculate the start and end index for the current page
+            int startIndex = currentPage * rowsPerPage;
+            int endIndex = (currentPage + 1) * rowsPerPage;
+
+            // Ensure endIndex doesn't exceed the total number of rows
+            endIndex = endIndex > _allResults.length ? _allResults.length : endIndex;
+
+            // Subset of data for the current page
+            List currentPageData = _allResults.sublist(startIndex, endIndex);
+
+            // Table contents column widths
+            Map<int, pw.TableColumnWidth> customColumnWidths = {
+              0: const pw.FixedColumnWidth(30.0), // 'No' column
+              1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
+              2: const pw.FixedColumnWidth(60.0), // 'Nama' column
+              3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
+              4: const pw.FixedColumnWidth(35.0), // 'stok' column
+              5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
+              6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
+              // Add more fields and their corresponding widths
+            };
+
+            return [
+              pw.Column(
                   children: [
-                    pw.Row(
-                      children: [
-                        pw.Image(
-                            pw.MemoryImage(imageData),
-                            height: 70,
-                            width: 70
-                        ),
-                        pw.SizedBox(width: 20),
-                        pw.Column(
-                            children: [
-                              pw.SizedBox(height: 20),
-                              pw.Text(
-                                'PEMERINTAH KABUPATEN MALANG',
-                                style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.normal),
-                              ),
-                              pw.Text(
-                                'BADAN PENANGGULANGAN BENCANA DAERAH',
-                                style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.bold),
-                              ),
-                              pw.Text(
-                                'Jl. Trunojoyo Kav.8 Telp. (0341) 392220 fax. (0341) 392121 Kepanjen',
-                                style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.normal),
-                              ),
-                              pw.Text(
-                                'Website : http://www.malangkab.go.id Email: bpbdkabupatenmalang@yahoo.co.id',
-                                style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic),
-                              ),
-                              pw.Text(
-                                'KEPANJEN - 65163',
-                                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-                              ),
-                            ]
-                        )
-                      ],
-                    ),
-                    pw.Divider(thickness: 1),
-                    pw.SizedBox(height: 20),
-                    pw.Column(
-                      children: [
-                        pw.Text(
-                          'Laporan Logistik Masuk',
-                          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
-                        ),
-                        pw.Text(
-                          formattedDateNow,
-                          style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic),
-                        ),
-                      ],
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    ),
-                  ],
-                ),
-
-                pw.SizedBox(height: 20),
-
-                pw.Table(
-                  defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-                  border: pw.TableBorder.all(),
-                  columnWidths: columnWidths,
-                  children: [
-                    pw.TableRow(
-                      children: fieldName.map((fields) {
-                        return pw.Padding(
-                          padding: const pw.EdgeInsets.all(8),
-                          child: pw.Text(
-                              fields,
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                              textAlign: pw.TextAlign.center
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    // Data rows
-                    ..._allResults.asMap().entries.map((entry) {
-                      int index = entry.key;
-                      Map<String, dynamic> row = entry.value;
-
-                      DateTime expiryDate = (row['Tanggal Kadaluarsa']).toDate();
-                      String formattedExpiryDate = DateFormat('EEEE, d MMMM yyyy').format(expiryDate);
-
-                      return pw.TableRow(
+                    //logos, titles
+                    if(currentPage == 0) ...[
+                      pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.start,
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          // 'No' column
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                                (index + 1).toString(),
-                                textAlign: pw.TextAlign.center
-                            ),
+                          pw.Row(
+                            children: [
+                              pw.Image(
+                                  pw.MemoryImage(imageData),
+                                  height: 70,
+                                  width: 70
+                              ),
+                              pw.SizedBox(width: 20),
+                              pw.Column(
+                                  children: [
+                                    pw.SizedBox(height: 20),
+                                    pw.Text(
+                                      'PEMERINTAH KABUPATEN MALANG',
+                                      style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.normal),
+                                    ),
+                                    pw.Text(
+                                      'BADAN PENANGGULANGAN BENCANA DAERAH',
+                                      style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.bold),
+                                    ),
+                                    pw.Text(
+                                      'Jl. Trunojoyo Kav.8 Telp. (0341) 392220 fax. (0341) 392121 Kepanjen',
+                                      style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.normal),
+                                    ),
+                                    pw.Text(
+                                      'Website : http://www.malangkab.go.id Email: bpbdkabupatenmalang@yahoo.co.id',
+                                      style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic),
+                                    ),
+                                    pw.Text(
+                                      'KEPANJEN - 65163',
+                                      style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+                                    ),
+                                  ]
+                              ),
+                              pw.SizedBox(width: 20),
+                            ],
                           ),
-                          // Data columns
-                          ...fieldContentsFrom.map((fieldName) {
-                            final fieldValue = row[fieldName];
-
-                            // Check if the field is a number and convert it to int
-                            final formattedValue = fieldValue is num ? fieldValue.toInt().toString() : fieldValue.toString();
-
-                            return pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
-                            );
-                          }).toList(),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
+                          pw.Divider(thickness: 1),
+                          pw.SizedBox(height: 20),
+                          pw.Column(
+                            children: [
+                              pw.Text(
+                                'Laporan Logistik Masuk',
+                                style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.Text(
+                                formattedDateNow,
+                                style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic),
+                              ),
+                            ],
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
                           ),
                         ],
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ]
-          );
-        },
-      ),
-    );
+                      ),
+                    ],
+
+                    //tables
+                    pw.Table(
+                      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      border: pw.TableBorder.all(),
+                      columnWidths: customColumnWidths,
+                      children: [
+                        pw.TableRow(
+                          children: fieldName.map((fields) {
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.all(8),
+                              child: pw.Text(
+                                  fields,
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                                  textAlign: pw.TextAlign.center
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        // Data rows
+                        ...currentPageData.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          Map<String, dynamic> row = entry.value;
+
+                          DateTime expiryDate = (row['Tanggal Kadaluarsa']).toDate();
+                          String formattedExpiryDate = DateFormat('EEEE, d MMMM yyyy').format(expiryDate);
+
+                          return pw.TableRow(
+                            children: [
+                              // 'No' column
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                    (startIndex + index + 1).toString(),
+                                    textAlign: pw.TextAlign.center
+                                ),
+                              ),
+                              // Data columns
+                              ...fieldContentsFrom.map((fieldName) {
+                                final fieldValue = row[fieldName];
+
+                                // Check if the field is a number and convert it to int
+                                final formattedValue = fieldValue is num ? fieldValue.toInt().toString() : fieldValue.toString();
+
+                                return pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
+                                );
+                              }).toList(),
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ]
+              )
+            ];
+          },
+        ),
+      );
+    }
 
     // Save the PDF to Documents directory
     final output = await getApplicationDocumentsDirectory();
@@ -613,7 +635,7 @@ class _LogisticInState extends State<LogisticIn> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('Close Preview'),
+                child: const Text('Tutup Pratinjau'),
               ),
               TextButton(
                 onPressed: () {
@@ -621,7 +643,7 @@ class _LogisticInState extends State<LogisticIn> {
                   // Share the PDF file
                   Share.shareFiles([file.path]);
                 },
-                child: const Text('Share'),
+                child: const Text('Bagikan'),
               ),
             ],
           );
