@@ -24,335 +24,6 @@ class LogisticIn extends StatefulWidget {
 }
 
 class _LogisticInState extends State<LogisticIn> {
-  final TextEditingController _searchController = TextEditingController();
-
-  List _allResults =[]; //temporary array list for storing values from firebase
-
-  List _resultList =[]; //second temporary array list to fetch the values from _allResults[],
-                        // and then the value of this list would be used to show the final results of the data lists
-
-  List<String> _filterOptions = []; // temporary string list for storing filter options
-
-  final List<String> _selectedFilterOption = []; // New variable for selected filter option/s
-
-  bool _isLoading = true; //loading state
-
-  bool areFiltersApplied() {
-    return _selectedFilterOption.isNotEmpty;
-  } //filter options selected checker
-
-  Color _sortButtonColor = Colors.white; // Default color of the sorting button
-  Color _sortIconColor = Colors.black; // Default color of the sorting button
-
-  bool _shouldUpdateSortButtonColor = false;
-
-
-  @override
-  void initState() {
-    super.initState();
-    getRecords();
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  getRecords()async{
-    setState(() {
-      _isLoading = true;
-    });
-
-    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistics');
-
-    // Check if there are selected filter options
-    if (_selectedFilterOption.isNotEmpty) {
-      // If only one filter option is selected, use normal where
-      if (_selectedFilterOption.length == 1) {
-        query = query.where('Kategori', isEqualTo: _selectedFilterOption[0]);
-      }
-      else {
-        // If more than one filter option is selected, use Filter.or
-
-        // insert all Filter functions in the List below, then...
-        List<Filter> filters = [];
-        for (String option in _selectedFilterOption) {
-          filters.add(Filter('Kategori', isEqualTo: option));
-        }
-
-        // Apply Filter.or to all filters
-        Filter orCondition = Filter.or(filters[0],filters[1]);
-        for (int i = 1; i < filters.length; i++) {
-          orCondition = Filter.or(orCondition, filters[i]);
-        }
-
-        //combine all queries
-        query = query.where(orCondition);
-      }
-    }
-
-    var logisticData = await query
-        .orderBy('Tanggal Kadaluarsa')
-        .get();
-
-    List<Map<String, dynamic>> logisticResults = [];
-    for (var doc in logisticData.docs) {
-      logisticResults.add(doc.data());
-    }
-
-    var categoryData = await FirebaseFirestore
-        .instance
-        .collection('kategori')
-        .get();
-
-    List<Map<String, dynamic>> categoryResults = [];
-    for (var doc in categoryData.docs) {
-      categoryResults.add(doc.data());
-    }
-
-    // Populate filterOptions with unique values from 'Kategori' field
-    Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
-    _filterOptions = uniqueCategories.toList();
-
-    setState(() {
-      _allResults = logisticResults;
-      _isLoading = false;
-    });
-    _searchResultList();
-  }
-
-  _onSearchChanged() {
-    _searchResultList();
-  }
-
-  _searchResultList(){
-    var showResult = [];
-    if(_searchController.text != "")
-    {
-      for (var clientSnapshot in _allResults){
-        var name = clientSnapshot['Nama Barang'].toString().toLowerCase();
-        if(name.contains(_searchController.text.toLowerCase())){
-          showResult.add(clientSnapshot);
-        }
-      }
-    }
-    else{
-      showResult = List.from(_allResults);
-    }
-
-    setState(() {
-      _resultList = showResult;
-    });
-
-  }
-
-  Future<void> generatePDF() async {
-
-    // Generate PDF and fetch a Logo
-    final pdf = pw.Document();
-    final ByteData image = await rootBundle.load(taSplashImage);
-    Uint8List imageData = (image).buffer.asUint8List();
-
-    // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Perolehan', 'Stok', 'Satuan', 'Kadaluarsa'];
-    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Asal Perolehan', 'Stok', 'Satuan'];
-
-    DateTime dateNow = DateTime.now();
-    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
-
-    pdf.addPage(
-      pw.Page(
-        build: (context) {
-          // Define column widths
-          // Define column widths
-          Map<int, pw.TableColumnWidth> columnWidths = {
-            0: const pw.FixedColumnWidth(30.0), // 'No' column
-            1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
-            2: const pw.FixedColumnWidth(60.0), // 'Nama' column
-            3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
-            4: const pw.FixedColumnWidth(35.0), // 'stok' column
-            5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
-            6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
-            // Add more fields and their corresponding widths
-          };
-          return pw.Column(
-              children: [
-                pw.Column(
-                  mainAxisAlignment: pw.MainAxisAlignment.start,
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Row(
-                      children: [
-                        pw.Image(
-                            pw.MemoryImage(imageData),
-                            height: 70,
-                            width: 70
-                        ),
-                        pw.SizedBox(width: 20),
-                        pw.Column(
-                          children: [
-                            pw.SizedBox(height: 20),
-                            pw.Text(
-                              'PEMERINTAH KABUPATEN MALANG',
-                              style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.normal),
-                            ),
-                            pw.Text(
-                              'BADAN PENANGGULANGAN BENCANA DAERAH',
-                              style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.bold),
-                            ),
-                            pw.Text(
-                              'Jl. Trunojoyo Kav.8 Telp. (0341) 392220 fax. (0341) 392121 Kepanjen',
-                              style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.normal),
-                            ),
-                            pw.Text(
-                              'Website : http://www.malangkab.go.id Email: bpbdkabupatenmalang@yahoo.co.id',
-                              style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic),
-                            ),
-                            pw.Text(
-                              'KEPANJEN - 65163',
-                              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-                            ),
-                          ]
-                        )
-                      ],
-                    ),
-                    pw.Divider(thickness: 1),
-                    pw.SizedBox(height: 20),
-                    pw.Column(
-                      children: [
-                        pw.Text(
-                          'Laporan Logistik Masuk',
-                          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
-                        ),
-                        pw.Text(
-                          formattedDateNow,
-                          style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic),
-                        ),
-                      ],
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    ),
-                  ],
-                ),
-
-                pw.SizedBox(height: 20),
-
-                pw.Table(
-                  defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-                  border: pw.TableBorder.all(),
-                  columnWidths: columnWidths,
-                  children: [
-                    pw.TableRow(
-                      children: fieldName.map((fields) {
-                        return pw.Padding(
-                          padding: const pw.EdgeInsets.all(8),
-                          child: pw.Text(
-                              fields,
-                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                              textAlign: pw.TextAlign.center
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    // Data rows
-                    ..._allResults.asMap().entries.map((entry) {
-                      int index = entry.key;
-                      Map<String, dynamic> row = entry.value;
-
-                      DateTime expiryDate = (row['Tanggal Kadaluarsa']).toDate();
-                      String formattedExpiryDate = DateFormat('EEEE, d MMMM yyyy').format(expiryDate);
-
-                      return pw.TableRow(
-                        children: [
-                          // 'No' column
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                                (index + 1).toString(),
-                                textAlign: pw.TextAlign.center
-                            ),
-                          ),
-                          // Data columns
-                          ...fieldContentsFrom.map((fieldName) {
-                            final fieldValue = row[fieldName];
-
-                            // Check if the field is a number and convert it to int
-                            final formattedValue = fieldValue is num ? fieldValue.toInt().toString() : fieldValue.toString();
-
-                            return pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
-                            );
-                          }).toList(),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ]
-          );
-        },
-      ),
-    );
-
-    // Save the PDF to Documents directory
-    final output = await getApplicationDocumentsDirectory();
-    final file = File("${output.path}/Laporan Logistik Masuk.pdf");
-
-    final bytes = await pdf.save(); // Await here to get the actual bytes
-
-    await file.writeAsBytes(bytes);
-
-    final pdfPinchController = PdfControllerPinch(
-      document: PdfDocument.openFile(file.path),
-    );
-
-    if(context.mounted){
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 400,
-              child: PdfViewPinch(controller: pdfPinchController,),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Close Preview'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Get.back();// Close the preview
-                  // Share the PDF file
-                  Share.shareFiles([file.path]);
-                },
-                child: const Text('Share'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Your code when dependencies change
-  }
-
-  @override
-  void dispose() {
-    // Your cleanup code here
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
 
@@ -605,6 +276,10 @@ class _LogisticInState extends State<LogisticIn> {
         animatedIcon: AnimatedIcons.menu_close,
         backgroundColor: taAccentColor,
         foregroundColor: Colors.white,
+        activeBackgroundColor: Colors.white,
+        activeForegroundColor: Colors.black,
+        elevation: 0,
+        overlayOpacity: 0,
         children: [
           SpeedDialChild(
             child: Transform.scale(
@@ -631,6 +306,328 @@ class _LogisticInState extends State<LogisticIn> {
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getRecords();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    // Your cleanup code here
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  final TextEditingController _searchController = TextEditingController();
+
+  List _allResults =[]; //temporary array list for storing values from firebase
+
+  List _resultList =[]; //second temporary array list to fetch the values from _allResults[],
+  // and then the value of this list would be used to show the final results of the data lists
+
+  List<String> _filterOptions = []; // temporary string list for storing filter options
+
+  final List<String> _selectedFilterOption = []; // New variable for selected filter option/s
+
+  bool _isLoading = true; //loading state
+
+  bool areFiltersApplied() {
+    return _selectedFilterOption.isNotEmpty;
+  } //filter options selected checker
+
+  bool _shouldUpdateSortButtonColor = false; //sort button active checker
+
+  Color _sortButtonColor = Colors.white; // Default color of the sorting button
+  Color _sortIconColor = Colors.black; // Default color of the sorting button
+
+  getRecords()async{
+    setState(() {
+      _isLoading = true;
+    });
+
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistics');
+
+    // Check if there are selected filter options
+    if (_selectedFilterOption.isNotEmpty) {
+      // If only one filter option is selected, use normal where
+      if (_selectedFilterOption.length == 1) {
+        query = query.where('Kategori', isEqualTo: _selectedFilterOption[0]);
+      }
+      else {
+        // If more than one filter option is selected, use Filter.or
+
+        // insert all Filter functions in the List below, then...
+        List<Filter> filters = [];
+        for (String option in _selectedFilterOption) {
+          filters.add(Filter('Kategori', isEqualTo: option));
+        }
+
+        // Apply Filter.or to all filters
+        Filter orCondition = Filter.or(filters[0],filters[1]);
+        for (int i = 1; i < filters.length; i++) {
+          orCondition = Filter.or(orCondition, filters[i]);
+        }
+
+        //combine all queries
+        query = query.where(orCondition);
+      }
+    }
+
+    var logisticData = await query
+        .orderBy('Tanggal Kadaluarsa')
+        .get();
+
+    List<Map<String, dynamic>> logisticResults = [];
+    for (var doc in logisticData.docs) {
+      logisticResults.add(doc.data());
+    }
+
+    var categoryData = await FirebaseFirestore
+        .instance
+        .collection('kategori')
+        .get();
+
+    List<Map<String, dynamic>> categoryResults = [];
+    for (var doc in categoryData.docs) {
+      categoryResults.add(doc.data());
+    }
+
+    // Populate filterOptions with unique values from 'Kategori' field
+    Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
+    _filterOptions = uniqueCategories.toList();
+
+    setState(() {
+      _allResults = logisticResults;
+      _isLoading = false;
+    });
+    _searchResultList();
+  }
+
+  _onSearchChanged() {
+    _searchResultList();
+  }
+
+  _searchResultList(){
+    var showResult = [];
+    if(_searchController.text != "")
+    {
+      for (var clientSnapshot in _allResults){
+        var name = clientSnapshot['Nama Barang'].toString().toLowerCase();
+        if(name.contains(_searchController.text.toLowerCase())){
+          showResult.add(clientSnapshot);
+        }
+      }
+    }
+    else{
+      showResult = List.from(_allResults);
+    }
+
+    setState(() {
+      _resultList = showResult;
+    });
+
+  }
+
+  Future<void> generatePDF() async {
+
+    // Generate PDF and fetch a Logo
+    final pdf = pw.Document();
+    final ByteData image = await rootBundle.load(taSplashImage);
+    Uint8List imageData = (image).buffer.asUint8List();
+
+    // Specify the fields you want to include in the PDF
+    List<String> fieldName = ['No', 'Jenis Barang', 'Nama', 'Perolehan', 'Stok', 'Satuan', 'Kadaluarsa'];
+    List<String> fieldContentsFrom = ['Kategori', 'Nama Barang', 'Asal Perolehan', 'Stok', 'Satuan'];
+
+    DateTime dateNow = DateTime.now();
+    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
+
+    pdf.addPage(
+      pw.Page(
+        build: (context) {
+          // Define column widths
+          // Define column widths
+          Map<int, pw.TableColumnWidth> columnWidths = {
+            0: const pw.FixedColumnWidth(30.0), // 'No' column
+            1: const pw.FixedColumnWidth(55.0), // 'Jenis Barang' column
+            2: const pw.FixedColumnWidth(60.0), // 'Nama' column
+            3: const pw.FixedColumnWidth(60.0), // 'Perolehan' column
+            4: const pw.FixedColumnWidth(35.0), // 'stok' column
+            5: const pw.FixedColumnWidth(40.0), // 'Satuan' column
+            6: const pw.FixedColumnWidth(60.0), // 'Tanggal' column
+            // Add more fields and their corresponding widths
+          };
+          return pw.Column(
+              children: [
+                pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(
+                      children: [
+                        pw.Image(
+                            pw.MemoryImage(imageData),
+                            height: 70,
+                            width: 70
+                        ),
+                        pw.SizedBox(width: 20),
+                        pw.Column(
+                            children: [
+                              pw.SizedBox(height: 20),
+                              pw.Text(
+                                'PEMERINTAH KABUPATEN MALANG',
+                                style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.normal),
+                              ),
+                              pw.Text(
+                                'BADAN PENANGGULANGAN BENCANA DAERAH',
+                                style: pw.TextStyle(fontSize: 16.5, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.Text(
+                                'Jl. Trunojoyo Kav.8 Telp. (0341) 392220 fax. (0341) 392121 Kepanjen',
+                                style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.normal),
+                              ),
+                              pw.Text(
+                                'Website : http://www.malangkab.go.id Email: bpbdkabupatenmalang@yahoo.co.id',
+                                style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic),
+                              ),
+                              pw.Text(
+                                'KEPANJEN - 65163',
+                                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+                              ),
+                            ]
+                        )
+                      ],
+                    ),
+                    pw.Divider(thickness: 1),
+                    pw.SizedBox(height: 20),
+                    pw.Column(
+                      children: [
+                        pw.Text(
+                          'Laporan Logistik Masuk',
+                          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          formattedDateNow,
+                          style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic),
+                        ),
+                      ],
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    ),
+                  ],
+                ),
+
+                pw.SizedBox(height: 20),
+
+                pw.Table(
+                  defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                  border: pw.TableBorder.all(),
+                  columnWidths: columnWidths,
+                  children: [
+                    pw.TableRow(
+                      children: fieldName.map((fields) {
+                        return pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                              fields,
+                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                              textAlign: pw.TextAlign.center
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    // Data rows
+                    ..._allResults.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Map<String, dynamic> row = entry.value;
+
+                      DateTime expiryDate = (row['Tanggal Kadaluarsa']).toDate();
+                      String formattedExpiryDate = DateFormat('EEEE, d MMMM yyyy').format(expiryDate);
+
+                      return pw.TableRow(
+                        children: [
+                          // 'No' column
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                                (index + 1).toString(),
+                                textAlign: pw.TextAlign.center
+                            ),
+                          ),
+                          // Data columns
+                          ...fieldContentsFrom.map((fieldName) {
+                            final fieldValue = row[fieldName];
+
+                            // Check if the field is a number and convert it to int
+                            final formattedValue = fieldValue is num ? fieldValue.toInt().toString() : fieldValue.toString();
+
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.all(8),
+                              child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
+                            );
+                          }).toList(),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(formattedExpiryDate, textAlign: pw.TextAlign.center),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ]
+          );
+        },
+      ),
+    );
+
+    // Save the PDF to Documents directory
+    final output = await getApplicationDocumentsDirectory();
+    final file = File("${output.path}/Laporan Logistik Masuk.pdf");
+
+    final bytes = await pdf.save(); // Await here to get the actual bytes
+
+    await file.writeAsBytes(bytes);
+
+    final pdfPinchController = PdfControllerPinch(
+      document: PdfDocument.openFile(file.path),
+    );
+
+    if(context.mounted){
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 400,
+              child: PdfViewPinch(controller: pdfPinchController,),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close Preview'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();// Close the preview
+                  // Share the PDF file
+                  Share.shareFiles([file.path]);
+                },
+                child: const Text('Share'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   void _showFilterPopup(BuildContext context) {
