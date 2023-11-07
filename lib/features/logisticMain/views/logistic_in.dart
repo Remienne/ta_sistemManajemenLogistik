@@ -106,164 +106,164 @@ class _LogisticInState extends State<LogisticIn> {
                             ),
                       )
                           : ListView.builder(
-                        itemCount: _resultList.length,
-                        itemBuilder: (c, index) {
-                          DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
-                          bool isExpired = expirationDate.isBefore(DateTime.now());
-                          String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+                            itemCount: _resultList.length,
+                            itemBuilder: (c, index) {
+                              DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
+                              bool isExpired = expirationDate.isBefore(DateTime.now());
+                              String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
 
-                          // Check if the current item is expired
-                          if (isExpired) {
-                            // Expired item UI
-                            return Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: (){
-                                    Get.to(() => LogisticDetailsPage(data: _resultList[index]));
-                                  },
-                                  child: Card(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      clipBehavior: Clip.antiAlias,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Container(
-                                          height: 90,
-                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                          child: Row(
-                                            children: [
-                                              //image
-                                              SizedBox(
-                                                  width: 65,
-                                                  height: 65,
-                                                  child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      child: Hero(
-                                                          tag: _resultList[index]['Link Gambar'],
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: _resultList[index]['Link Gambar'],
-                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                              // Check if the current item is expired
+                              if (isExpired) {
+                                // Expired item UI
+                                return Column(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: (){
+                                        Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                      },
+                                      child: Card(
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          clipBehavior: Clip.antiAlias,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          child: Container(
+                                              height: 90,
+                                              padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                              child: Row(
+                                                children: [
+                                                  //image
+                                                  SizedBox(
+                                                      width: 65,
+                                                      height: 65,
+                                                      child: Container(
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.circular(10),
+                                                          ),
+                                                          child: Hero(
+                                                              tag: _resultList[index]['Link Gambar'],
+                                                              child: CachedNetworkImage(
+                                                                imageUrl: _resultList[index]['Link Gambar'],
+                                                                progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                                errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                              )
                                                           )
                                                       )
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                  //desc
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          _resultList[index]['Nama Barang'],
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w600,
+                                                            fontSize:18,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          _resultList[index]['Kategori'],
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize:14,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          'Kadaluarsa',
+                                                          style: GoogleFonts.poppins(
+                                                              fontSize:14,
+                                                              color: Colors.redAccent
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   )
-                                              ),
-                                              const SizedBox(width: 20),
-                                              //desc
-                                              Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      _resultList[index]['Nama Barang'],
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize:18,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _resultList[index]['Kategori'],
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      'Kadaluarsa',
-                                                      style: GoogleFonts.poppins(
-                                                          fontSize:14,
-                                                          color: Colors.redAccent
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                ],
                                               )
-                                            ],
                                           )
-                                      )
-                                  ),
-                                ), // Divider for expired items
-                              ],
-                            );
-                          }
-                          else {
-                            // Not expired item UI
-                            return Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: (){
-                                    Get.to(() => LogisticDetailsPage(data: _resultList[index]));
-                                  },
-                                  child: Card(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      clipBehavior: Clip.antiAlias,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
                                       ),
-                                      child: Container(
-                                          height: 90,
-                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                          child: Row(
-                                            children: [
-                                              //image
-                                              SizedBox(
-                                                  width: 65,
-                                                  height: 65,
-                                                  child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      child: Hero(
-                                                          tag: _resultList[index]['Link Gambar'],
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: _resultList[index]['Link Gambar'],
-                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                    ), // Divider for expired items
+                                  ],
+                                );
+                              }
+                              else {
+                                // Not expired item UI
+                                return Column(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: (){
+                                        Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                      },
+                                      child: Card(
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          clipBehavior: Clip.antiAlias,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(14),
+                                          ),
+                                          child: Container(
+                                              height: 90,
+                                              padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                              child: Row(
+                                                children: [
+                                                  //image
+                                                  SizedBox(
+                                                      width: 65,
+                                                      height: 65,
+                                                      child: Container(
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.circular(10),
+                                                          ),
+                                                          child: Hero(
+                                                              tag: _resultList[index]['Link Gambar'],
+                                                              child: CachedNetworkImage(
+                                                                imageUrl: _resultList[index]['Link Gambar'],
+                                                                progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                                errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                              )
                                                           )
                                                       )
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                  //desc
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          _resultList[index]['Nama Barang'],
+                                                          overflow: TextOverflow.ellipsis,
+                                                          style: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w600,
+                                                            fontSize:18,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          _resultList[index]['Kategori'],
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize:14,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          formatted,
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize:14,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   )
-                                              ),
-                                              const SizedBox(width: 20),
-                                              //desc
-                                              Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      _resultList[index]['Nama Barang'],
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize:18,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _resultList[index]['Kategori'],
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      formatted,
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                ],
                                               )
-                                            ],
                                           )
-                                      )
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
                         },
                       ),
                   )
@@ -345,28 +345,18 @@ class _LogisticInState extends State<LogisticIn> {
   Color _sortButtonColor = Colors.white; // Default color of the sorting button
   Color _sortIconColor = Colors.black; // Default color of the sorting button
 
+  DateTime _defaultStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+  final _selectedStartDateController = TextEditingController();
+
+  DateTime _defaultEndDate = DateTime.parse('2077-12-30 12:00:00Z');
+  final _selectedEndDateController = TextEditingController();
+
   getRecords()async{
     setState(() {
       _isLoading = true;
     });
 
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistikMasuk');
-
-    var logisticData = await query
-        .orderBy('Kategori')
-        .orderBy('Nama Barang')
-        .get();
-
-    List<Map<String, dynamic>> logisticResults = [];
-    for (var doc in logisticData.docs) {
-      logisticResults.add(doc.data());
-    }
-
-    setState(() {
-      _allResults = logisticResults;
-      _isLoading = false;
-    });
-    _searchResultList();
 
     // Check if there are selected filter options
     if (_selectedFilterOption.isNotEmpty) {
@@ -394,6 +384,17 @@ class _LogisticInState extends State<LogisticIn> {
       }
     }
 
+    var logisticData = await query
+        .where('Tanggal Kadaluarsa', isGreaterThan: _defaultStartDate)
+        .where('Tanggal Kadaluarsa', isLessThan: _defaultEndDate)
+        .orderBy('Tanggal Kadaluarsa')
+        .get();
+
+    List<Map<String, dynamic>> logisticResults = [];
+    for (var doc in logisticData.docs) {
+      logisticResults.add(doc.data());
+    }
+
     var categoryData = await FirebaseFirestore
         .instance
         .collection('kategori')
@@ -407,6 +408,21 @@ class _LogisticInState extends State<LogisticIn> {
     // Populate filterOptions with unique values from 'Kategori' field
     Set<String> uniqueCategories = categoryResults.map((result) => result['nama'] as String).toSet();
     _filterOptions = uniqueCategories.toList();
+
+    setState(() {
+      _allResults = logisticResults;
+      _isLoading = false;
+    });
+    _allResults.sort((a, b) {
+      int nameComparison = a['Nama Barang'].compareTo(b['Nama Barang']);
+      if (nameComparison != 0) {
+        return nameComparison; // If names are different, use that comparison
+      } else {
+        // If names are equal, compare based on AnotherField
+        return a['Kategori'].compareTo(b['Kategori']);
+      }
+    });
+    _searchResultList();
   }
 
   _onSearchChanged() {
@@ -432,6 +448,199 @@ class _LogisticInState extends State<LogisticIn> {
       _resultList = showResult;
     });
 
+  }
+
+  void _showFilterPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text(
+                'Filter Data',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+              ),
+              content: _buildFilterContents(setState),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedFilterOption.clear();
+                      _selectedStartDateController.clear();
+                      _selectedEndDateController.clear();
+                      _defaultStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+                      _defaultEndDate = DateTime.parse('2101-12-31 12:00:00Z');
+                    });
+                    debugPrint('Selected options: $_selectedFilterOption');
+                  },
+                  child: Text(
+                    'Hapus',
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w400,
+                      fontSize:14,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (){
+                    setState(() {
+                      getRecords();
+                      _shouldUpdateSortButtonColor = true;
+                      _updateSortButtonColor();
+                    });
+                    Get.back();
+                    debugPrint('Selected options: $_selectedFilterOption');
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: taAccentColor,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      )
+                  ),
+                  child: Text(
+                    'Terapkan',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.normal,
+                      fontSize:14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 5,)
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _updateSortButtonColor() {
+    setState(() {
+      // Check if filters are applied and update the sort button color
+      // Here you can customize the color based on your preference
+      if (_shouldUpdateSortButtonColor) {
+        setState(() {
+          _sortButtonColor = areFiltersApplied() ? taAccentColor : Colors.white;
+          _sortIconColor = areFiltersApplied() ? Colors.white : Colors.black;
+        });
+      }
+    });
+  }
+
+  Widget _buildFilterContents(StateSetter setState) {
+    return Wrap(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Kategori',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 5,),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (String option in _filterOptions)
+                  FilterChip(
+                    label: Text(
+                      option,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize:13,
+                        color: _selectedFilterOption.contains(option) ? Colors.white : null,
+                      ),
+                    ),
+                    selected: _selectedFilterOption.contains(option),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected && !_selectedFilterOption.contains(option)) {
+                          _selectedFilterOption.add(option);
+                        } else if (!selected && _selectedFilterOption.contains(option)){
+                          _selectedFilterOption.remove(option);
+                        }
+                      });
+                    },
+                    backgroundColor: taBackgroundColor,
+                    selectedColor: taAccentColor,
+                    checkmarkColor: _selectedFilterOption.contains(option) ? Colors.white : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10,),
+            Text(
+              'Tanggal Masuk',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 10,),
+            TextFormField(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                controller: _selectedStartDateController,
+                readOnly: true,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Awal',
+                ),
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2001),
+                      lastDate: DateTime(2101));
+                  if (picked != null && picked != _defaultStartDate) {
+                    setState(() {
+                      _defaultStartDate = picked;
+                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultStartDate);
+                    });
+                  }
+                }
+            ),
+            const SizedBox(height: 10,),
+            TextFormField(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                controller: _selectedEndDateController,
+                readOnly: true,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Akhir',
+                ),
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2001),
+                      lastDate: DateTime(2101));
+                  if (picked != null && picked != _defaultEndDate) {
+                    setState(() {
+                      _defaultEndDate = picked;
+                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultEndDate);
+                    });
+                  }
+                }
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Future<void> generatePDF() async {
@@ -539,6 +748,7 @@ class _LogisticInState extends State<LogisticIn> {
                             ],
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                           ),
+                          pw.SizedBox(height: 10),
                         ],
                       ),
                     ],
@@ -638,9 +848,16 @@ class _LogisticInState extends State<LogisticIn> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Get.back();
                 },
-                child: const Text('Tutup Pratinjau'),
+                child: Text(
+                  'Tutup Pratinjau',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w500,
+                    fontSize:12,
+                    color: Colors.grey
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -648,7 +865,14 @@ class _LogisticInState extends State<LogisticIn> {
                   // Share the PDF file
                   Share.shareFiles([file.path]);
                 },
-                child: const Text('Bagikan'),
+                child: Text(
+                  'Bagikan',
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize:15,
+                      color: taPrimaryColor
+                  ),
+                ),
               ),
             ],
           );
@@ -656,112 +880,4 @@ class _LogisticInState extends State<LogisticIn> {
       );
     }
   }
-
-  void _showFilterPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Kategori'),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
-              ),
-              content: _buildFilterContents(setState),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFilterOption.clear();
-                    });
-                    debugPrint('Selected options: $_selectedFilterOption');
-                  },
-                  child: Text(
-                    'Hapus',
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize:14,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: (){
-                    setState(() {
-                      getRecords();
-                      _shouldUpdateSortButtonColor = true;
-                      _updateSortButtonColor();
-                    });
-                    Get.back();
-                    debugPrint('Selected options: $_selectedFilterOption');
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: taAccentColor,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                      )
-                  ),
-                  child: Text(
-                    'Terapkan',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.normal,
-                      fontSize:14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 5,)
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _updateSortButtonColor() {
-    setState(() {
-      // Check if filters are applied and update the sort button color
-      // Here you can customize the color based on your preference
-      if (_shouldUpdateSortButtonColor) {
-        setState(() {
-          _sortButtonColor = areFiltersApplied() ? taAccentColor : Colors.white;
-          _sortIconColor = areFiltersApplied() ? Colors.white : Colors.black;
-        });
-      }
-    });
-  }
-
-  Widget _buildFilterContents(StateSetter setState) {
-    return Wrap(
-      spacing: 8.0,
-      children: [
-        for (String option in _filterOptions)
-          FilterChip(
-            label: Text(
-              option,
-              style: TextStyle(
-                color: _selectedFilterOption.contains(option) ? Colors.white : null,
-              ),
-            ),
-            selected: _selectedFilterOption.contains(option),
-            onSelected: (selected) {
-              setState(() {
-                if (selected && !_selectedFilterOption.contains(option)) {
-                  _selectedFilterOption.add(option);
-                } else if (!selected && _selectedFilterOption.contains(option)){
-                  _selectedFilterOption.remove(option);
-                }
-              });
-            },
-            backgroundColor: taBackgroundColor,
-            selectedColor: taAccentColor,
-            checkmarkColor: _selectedFilterOption.contains(option) ? Colors.white : null,
-          ),
-      ],
-    );
-  }
-
-
 }
