@@ -71,7 +71,7 @@ class _LogisticMainState extends State<LogisticMain> {
                   onPressed: () {
                     AuthenticationRepository().logout();
                   },
-                  color: taPrimaryColor,
+                  color: taAccentColor,
                   child: const Text(
                     "Ya",
                     style: TextStyle(color: Colors.white, fontSize: 20),

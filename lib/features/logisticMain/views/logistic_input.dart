@@ -163,7 +163,7 @@ class _LogisticInputState extends State<LogisticInput> {
                 onPressed: () {
                   Get.offAll(() => const LogisticMain());
                 },
-                color: taPrimaryColor,
+                color: taAccentColor,
                 child: const Text(
                   "Ya",
                   style: TextStyle(color: Colors.white, fontSize: 20),
@@ -176,7 +176,7 @@ class _LogisticInputState extends State<LogisticInput> {
                 color: Colors.white,
                 child: const Text(
                   "Tidak",
-                  style: TextStyle(color: taPrimaryColor),
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
             ],
@@ -578,7 +578,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                   onPressed: () {
                                     Get.offAll(() => const LogisticMain());
                                   },
-                                  color: taPrimaryColor,
+                                  color: taAccentColor,
                                   child: const Text(
                                     "Ya",
                                     style: TextStyle(color: Colors.white, fontSize: 20),
@@ -589,7 +589,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                   color: Colors.white,
                                   child: const Text(
                                     "Tidak",
-                                    style: TextStyle(color: taPrimaryColor),
+                                    style: TextStyle(color: taPrimaryColor, fontSize: 15),
                                   ),
                                 ),
                               ],
