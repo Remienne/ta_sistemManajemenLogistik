@@ -386,9 +386,9 @@ class _LogisticInState extends State<LogisticIn> {
     }
 
     var logisticData = await query
-        .where('Tanggal Kadaluarsa', isGreaterThan: _defaultStartDate)
-        .where('Tanggal Kadaluarsa', isLessThan: _defaultEndDate)
-        .orderBy('Tanggal Kadaluarsa')
+        .where('Tanggal Unggah', isGreaterThanOrEqualTo: _defaultStartDate)
+        .where('Tanggal Unggah', isLessThan: _defaultEndDate)
+        .orderBy('Tanggal Unggah')
         .get();
 
     List<Map<String, dynamic>> logisticResults = [];
@@ -415,13 +415,12 @@ class _LogisticInState extends State<LogisticIn> {
       _isLoading = false;
     });
     _allResults.sort((a, b) {
-      int nameComparison = a['Nama Barang'].compareTo(b['Nama Barang']);
-      if (nameComparison != 0) {
-        return nameComparison; // If names are different, use that comparison
-      } else {
-        // If names are equal, compare based on AnotherField
-        return a['Kategori'].compareTo(b['Kategori']);
-      }
+      // Extract and parse 'Tanggal Kadaluarsa' as DateTime
+      DateTime tanggalKadaluarsaA = a['Tanggal Kadaluarsa'].toDate();
+      DateTime tanggalKadaluarsaB = b['Tanggal Kadaluarsa'].toDate();
+
+      // Compare 'Tanggal Kadaluarsa'
+      return tanggalKadaluarsaA.compareTo(tanggalKadaluarsaB);
     });
     _searchResultList();
   }
@@ -676,6 +675,17 @@ class _LogisticInState extends State<LogisticIn> {
       7: const pw.FixedColumnWidth(52.0), // 'Perolehan' column
       // Add more fields and their corresponding widths
     };
+
+    //re-Align the ordering of all the items
+    _allResults.sort((a, b) {
+      // First, compare 'Kategori'
+      int kategoriComparison = a['Kategori'].compareTo(b['Kategori']);
+      if (kategoriComparison != 0) {
+        return kategoriComparison;
+      }
+      // If 'Kategori' is the same, compare 'Nama Barang' in a case-insensitive manner
+      return a['Nama Barang'].toLowerCase().compareTo(b['Nama Barang'].toLowerCase());
+    });
 
     // First Page
     pdf.addPage(
