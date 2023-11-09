@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -287,6 +288,13 @@ class _LogisticOutState extends State<LogisticOut> {
               ],
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: taAccentColor,
+          onPressed: (){
+            generatePDF();
+          },
+          child: const Icon(Icons.picture_as_pdf, color: Colors.white),
         ),
       ),
     );
@@ -581,7 +589,7 @@ class _LogisticOutState extends State<LogisticOut> {
             ),
             const SizedBox(height: 10,),
             Text(
-              'Tanggal Masuk',
+              'Tanggal Keluar',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -657,8 +665,8 @@ class _LogisticOutState extends State<LogisticOut> {
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Masuk', 'Kadaluarsa', 'Asal Perolehan'];
-    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Unggah', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Keluar', 'Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Keluar', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
@@ -677,7 +685,7 @@ class _LogisticOutState extends State<LogisticOut> {
       2: const pw.FixedColumnWidth(30.0), // 'stok' column
       3: const pw.FixedColumnWidth(28.0), // 'Satuan' column
       4: const pw.FixedColumnWidth(47.0), // 'Jenis Barang' column
-      5: const pw.FixedColumnWidth(53.0), // 'Tanggal Masuk' column
+      5: const pw.FixedColumnWidth(53.0), // 'Tanggal Keluar' column
       6: const pw.FixedColumnWidth(40.0), // 'Kadaluarsa' column
       7: const pw.FixedColumnWidth(52.0), // 'Perolehan' column
       // Add more fields and their corresponding widths
@@ -752,7 +760,7 @@ class _LogisticOutState extends State<LogisticOut> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'Laporan Logistik Masuk',
+                        'Laporan Logistik Keluar',
                         style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
                       ),
                       pw.Text(
@@ -763,61 +771,83 @@ class _LogisticOutState extends State<LogisticOut> {
                   ),
                   pw.SizedBox(height: 15),
 
+                  // tables
+                  if (_allResults.isNotEmpty)
                   //tables
-                  pw.Table(
-                    defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-                    border: pw.TableBorder.all(),
-                    columnWidths: customColumnWidths,
-                    children: [
-                      pw.TableRow(
-                        children: fieldName.map((fields) {
-                          return pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                                fields,
-                                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
-                                textAlign: pw.TextAlign.center
-                            ),
+                    pw.Table(
+                      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      border: pw.TableBorder.all(),
+                      columnWidths: customColumnWidths,
+                      children: [
+                        pw.TableRow(
+                          children: fieldName.map((fields) {
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.all(8),
+                              child: pw.Text(
+                                  fields,
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                                  textAlign: pw.TextAlign.center
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        // Data rows
+                        ..._allResults.sublist(0, min(firstPageRow, _allResults.length)).asMap().entries.map((entry) {
+                          int index = entry.key;
+                          Map<String, dynamic> row = entry.value;
+
+                          return pw.TableRow(
+                            children: [
+                              // 'No' column
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                    (index + 1).toString(),
+                                    textAlign: pw.TextAlign.center
+                                ),
+                              ),
+                              // Data columns
+                              ...fieldContentsFrom.map((fieldName) {
+                                final fieldValue = row[fieldName];
+
+                                // Check if the field is a number and convert it to int
+                                final formattedValue = fieldValue is num
+                                    ? fieldValue.toInt().toString()
+                                    : fieldValue is Timestamp
+                                    ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
+                                    : fieldValue.toString();
+
+                                return pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
+                                );
+                              }).toList(),
+                            ],
                           );
                         }).toList(),
-                      ),
-
-                      // Data rows
-                      ..._allResults.sublist(0, firstPageRow).asMap().entries.map((entry) {
-                        int index = entry.key;
-                        Map<String, dynamic> row = entry.value;
-
-                        return pw.TableRow(
+                      ],
+                    ),
+                  if (_allResults.isEmpty)
+                    pw.Table(
+                      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      border: pw.TableBorder.all(),
+                      columnWidths: customColumnWidths,
+                      children: [
+                        pw.TableRow(
                           children: [
-                            // 'No' column
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
                               child: pw.Text(
-                                  (index + 1).toString(),
+                                  'Tabel Kosong',
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
                                   textAlign: pw.TextAlign.center
                               ),
                             ),
-                            // Data columns
-                            ...fieldContentsFrom.map((fieldName) {
-                              final fieldValue = row[fieldName];
-
-                              // Check if the field is a number and convert it to int
-                              final formattedValue = fieldValue is num
-                                  ? fieldValue.toInt().toString()
-                                  : fieldValue is Timestamp
-                                  ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
-                                  : fieldValue.toString();
-
-                              return pw.Padding(
-                                padding: const pw.EdgeInsets.all(8),
-                                child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
-                              );
-                            }).toList(),
                           ],
-                        );
-                      }).toList(),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
                 ]
             )
           ];
@@ -907,7 +937,7 @@ class _LogisticOutState extends State<LogisticOut> {
 
     // Save the PDF to Documents directory
     final output = await getApplicationDocumentsDirectory();
-    final file = File("${output.path}/Laporan Logistik Masuk.pdf");
+    final file = File("${output.path}/Laporan Logistik Keluar.pdf");
 
     final bytes = await pdf.save(); // Await here to get the actual bytes
 

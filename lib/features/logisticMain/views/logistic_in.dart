@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -682,7 +683,7 @@ class _LogisticInState extends State<LogisticIn> {
 
     // Specify the fields you want to include in the PDF
     List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Masuk', 'Kadaluarsa', 'Asal Perolehan'];
-    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Unggah', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Masuk', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
@@ -787,61 +788,84 @@ class _LogisticInState extends State<LogisticIn> {
                   ),
                   pw.SizedBox(height: 15),
 
+                  // tables
+                  if (_allResults.isNotEmpty)
                   //tables
-                  pw.Table(
-                    defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-                    border: pw.TableBorder.all(),
-                    columnWidths: customColumnWidths,
-                    children: [
-                      pw.TableRow(
-                        children: fieldName.map((fields) {
-                          return pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                                fields,
-                                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
-                                textAlign: pw.TextAlign.center
-                            ),
+                    pw.Table(
+                      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      border: pw.TableBorder.all(),
+                      columnWidths: customColumnWidths,
+                      children: [
+                        pw.TableRow(
+                          children: fieldName.map((fields) {
+                            return pw.Padding(
+                              padding: const pw.EdgeInsets.all(8),
+                              child: pw.Text(
+                                  fields,
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                                  textAlign: pw.TextAlign.center
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        // Data rows
+                        ..._allResults.sublist(0, min(firstPageRow, _allResults.length)).asMap().entries.map((entry) {
+                          int index = entry.key;
+                          Map<String, dynamic> row = entry.value;
+
+                          return pw.TableRow(
+                            children: [
+                              // 'No' column
+                              pw.Padding(
+                                padding: const pw.EdgeInsets.all(8),
+                                child: pw.Text(
+                                    (index + 1).toString(),
+                                    textAlign: pw.TextAlign.center
+                                ),
+                              ),
+                              // Data columns
+                              ...fieldContentsFrom.map((fieldName) {
+                                final fieldValue = row[fieldName];
+
+                                // Check if the field is a number and convert it to int
+                                final formattedValue = fieldValue is num
+                                    ? fieldValue.toInt().toString()
+                                    : fieldValue is Timestamp
+                                    ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
+                                    : fieldValue.toString();
+
+                                return pw.Padding(
+                                  padding: const pw.EdgeInsets.all(8),
+                                  child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
+                                );
+                              }).toList(),
+                            ],
                           );
                         }).toList(),
-                      ),
-
-                      // Data rows
-                      ..._allResults.sublist(0, firstPageRow).asMap().entries.map((entry) {
-                        int index = entry.key;
-                        Map<String, dynamic> row = entry.value;
-
-                        return pw.TableRow(
+                      ],
+                    ),
+                  if (_allResults.isEmpty)
+                    pw.Table(
+                      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      border: pw.TableBorder.all(),
+                      columnWidths: customColumnWidths,
+                      children: [
+                        pw.TableRow(
                           children: [
-                            // 'No' column
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
                               child: pw.Text(
-                                  (index + 1).toString(),
+                                  'Tabel Kosong',
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
                                   textAlign: pw.TextAlign.center
                               ),
                             ),
-                            // Data columns
-                            ...fieldContentsFrom.map((fieldName) {
-                              final fieldValue = row[fieldName];
-
-                              // Check if the field is a number and convert it to int
-                              final formattedValue = fieldValue is num
-                                  ? fieldValue.toInt().toString()
-                                  : fieldValue is Timestamp
-                                  ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
-                                  : fieldValue.toString();
-
-                              return pw.Padding(
-                                padding: const pw.EdgeInsets.all(8),
-                                child: pw.Text(formattedValue, textAlign: pw.TextAlign.center),
-                              );
-                            }).toList(),
                           ],
-                        );
-                      }).toList(),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+
                 ]
             )
           ];
