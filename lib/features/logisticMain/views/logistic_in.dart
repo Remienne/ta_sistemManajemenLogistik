@@ -120,7 +120,7 @@ class _LogisticInState extends State<LogisticIn> {
                                   children: [
                                     GestureDetector(
                                       onTap: (){
-                                        Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                        Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikIn'));
                                       },
                                       child: Card(
                                           margin: const EdgeInsets.only(bottom: 12),
@@ -196,7 +196,7 @@ class _LogisticInState extends State<LogisticIn> {
                                   children: [
                                     GestureDetector(
                                       onTap: (){
-                                        Get.to(() => LogisticDetailsPage(data: _resultList[index]));
+                                        Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikIn'));
                                       },
                                       child: Card(
                                           margin: const EdgeInsets.only(bottom: 12),
@@ -333,7 +333,8 @@ class _LogisticInState extends State<LogisticIn> {
 
   List<String> _filterOptions = []; // temporary string list for storing filter options
 
-  final List<String> _selectedFilterOption = []; // New variable for selected filter option/s
+  final List<String> _selectedFilterOption = [];
+  final List<DateTime> _selectedFilterOption2 = [];// New variable for selected filter option/s
 
   bool _isLoading = true; //loading state
 
@@ -346,10 +347,10 @@ class _LogisticInState extends State<LogisticIn> {
   Color _sortButtonColor = Colors.white; // Default color of the sorting button
   Color _sortIconColor = Colors.black; // Default color of the sorting button
 
-  DateTime _defaultStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+  DateTime _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
   final _selectedStartDateController = TextEditingController();
 
-  DateTime _defaultEndDate = DateTime.parse('2077-12-30 12:00:00Z');
+  DateTime _defaultSelectedEndDate = DateTime.parse('2077-12-30 12:00:00Z');
   final _selectedEndDateController = TextEditingController();
 
   getRecords()async{
@@ -358,6 +359,10 @@ class _LogisticInState extends State<LogisticIn> {
     });
 
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('logistikMasuk');
+    DateTime defaultEndDate = DateTime(_defaultSelectedStartDate.year
+        , _defaultSelectedStartDate.month
+        , _defaultSelectedStartDate.day
+        , 23, 59, 59, 999, 999);
 
     // Check if there are selected filter options
     if (_selectedFilterOption.isNotEmpty) {
@@ -385,15 +390,28 @@ class _LogisticInState extends State<LogisticIn> {
       }
     }
 
-    var logisticData = await query
-        .where('Tanggal Unggah', isGreaterThanOrEqualTo: _defaultStartDate)
-        .where('Tanggal Unggah', isLessThan: _defaultEndDate)
-        .orderBy('Tanggal Unggah')
-        .get();
+    if (_selectedFilterOption2.isNotEmpty) {
+      // If only one filter option is selected, use normal where
+      if (_selectedFilterOption2.length == 1) {
+        query = query
+            .where('Tanggal Masuk', isGreaterThanOrEqualTo: _defaultSelectedStartDate)
+            .where('Tanggal Masuk', isLessThan: defaultEndDate);
+      }
+      if(_selectedFilterOption2.length == 2){
+        query = query
+            .where('Tanggal Masuk', isGreaterThanOrEqualTo: _defaultSelectedStartDate)
+            .where('Tanggal Masuk', isLessThanOrEqualTo: _defaultSelectedEndDate);
+      }
+    }
+
+    var logisticData = await query.get();
 
     List<Map<String, dynamic>> logisticResults = [];
     for (var doc in logisticData.docs) {
-      logisticResults.add(doc.data());
+      Map<String, dynamic> resultWithId = doc.data();
+      resultWithId['id'] = doc.id; // Adding the document ID to the result map
+      resultWithId['Tanggal Masuk'] = Timestamp(resultWithId['Tanggal Masuk'].seconds, 0,);
+      logisticResults.add(resultWithId);
     }
 
     var categoryData = await FirebaseFirestore
@@ -423,6 +441,8 @@ class _LogisticInState extends State<LogisticIn> {
       return tanggalKadaluarsaA.compareTo(tanggalKadaluarsaB);
     });
     _searchResultList();
+    debugPrint(_defaultSelectedStartDate.toString());
+    debugPrint(_defaultSelectedEndDate.toString());
   }
 
   _onSearchChanged() {
@@ -451,8 +471,11 @@ class _LogisticInState extends State<LogisticIn> {
   }
 
   void _showFilterPopup(BuildContext context) {
+    // Create a GlobalKey for the button
+    GlobalKey key = GlobalKey();
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -460,7 +483,7 @@ class _LogisticInState extends State<LogisticIn> {
               title: Text(
                 'Filter Data',
                 style: GoogleFonts.poppins(
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -473,37 +496,37 @@ class _LogisticInState extends State<LogisticIn> {
                   onPressed: () {
                     setState(() {
                       _selectedFilterOption.clear();
+                      _selectedFilterOption2.clear();
                       _selectedStartDateController.clear();
                       _selectedEndDateController.clear();
-                      _defaultStartDate = DateTime.parse('1990-01-01 12:00:00Z');
-                      _defaultEndDate = DateTime.parse('2101-12-31 12:00:00Z');
+                      _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+                      _defaultSelectedEndDate = DateTime.parse('2101-12-31 12:00:00Z');
                     });
-                    debugPrint('Selected options: $_selectedFilterOption');
                   },
                   child: Text(
                     'Hapus',
                     style: GoogleFonts.poppins(
                       color: Colors.grey,
                       fontWeight: FontWeight.w400,
-                      fontSize:14,
+                      fontSize:12,
                     ),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: (){
+                  key: key,
+                  onPressed: () {
                     setState(() {
                       getRecords();
                       _shouldUpdateSortButtonColor = true;
                       _updateSortButtonColor();
                     });
-                    Get.back();
-                    debugPrint('Selected options: $_selectedFilterOption');
+                    Get.back(); // Pass true to indicate success or any other data you need
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: taAccentColor,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                      )
+                    backgroundColor: taAccentColor,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                    ),
                   ),
                   child: Text(
                     'Terapkan',
@@ -520,7 +543,8 @@ class _LogisticInState extends State<LogisticIn> {
           },
         );
       },
-    );
+    ).then((result){
+    });
   }
 
   void _updateSortButtonColor() {
@@ -587,7 +611,7 @@ class _LogisticInState extends State<LogisticIn> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(height: 5,),
             TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _selectedStartDateController,
@@ -604,10 +628,12 @@ class _LogisticInState extends State<LogisticIn> {
                       initialDate: DateTime.now(),
                       firstDate: DateTime(2001),
                       lastDate: DateTime(2101));
-                  if (picked != null && picked != _defaultStartDate) {
+                  if (picked != null && picked != _defaultSelectedStartDate) {
                     setState(() {
-                      _defaultStartDate = picked;
-                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultStartDate);
+                      _selectedFilterOption2.clear();
+                      _defaultSelectedStartDate = DateTime(picked.year, picked.month, picked.day, 00, 00, 00);
+                      _selectedFilterOption2.add(_defaultSelectedStartDate);
+                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedStartDate);
                     });
                   }
                 }
@@ -629,10 +655,15 @@ class _LogisticInState extends State<LogisticIn> {
                       initialDate: DateTime.now(),
                       firstDate: DateTime(2001),
                       lastDate: DateTime(2101));
-                  if (picked != null && picked != _defaultEndDate) {
+                  if (picked != null && picked != _defaultSelectedEndDate) {
                     setState(() {
-                      _defaultEndDate = picked;
-                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultEndDate);
+                      _defaultSelectedEndDate = DateTime(picked.year, picked.month, picked.day, 00, 00, 00);
+                      // Remove item at index 1
+                      if (_selectedFilterOption2.length > 2) {
+                        _selectedFilterOption2.removeAt(1);
+                      }
+                      _selectedFilterOption2.add(_defaultSelectedEndDate);
+                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedEndDate);
                     });
                   }
                 }

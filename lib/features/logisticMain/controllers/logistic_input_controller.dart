@@ -17,7 +17,7 @@ class LogisticInputController extends GetxController{
 
   final logisticDb = Get.put(LogisticDb());
 
-  Future<void> insertItem(LogisticsModel logistics) async {
+  Future<void> insertItem(LogisticsInModel logistics) async {
     await logisticDb.insertLogisticAlert(logistics);
   }
 }

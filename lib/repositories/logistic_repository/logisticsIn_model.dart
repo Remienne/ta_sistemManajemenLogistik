@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LogisticsModel{
+class LogisticsInModel{
   final String? id;
   final String name;
   final String source;
@@ -9,11 +9,11 @@ class LogisticsModel{
   final double stock;
   final String category;
   Timestamp dateEnd;
-  Timestamp uploadedDate;
+  Timestamp insertDate;
   final String imgPath;
   final String officer;
 
-  LogisticsModel({
+  LogisticsInModel({
     this.id,
     required this.name,
     required this.source,
@@ -22,7 +22,7 @@ class LogisticsModel{
     required this.stock,
     required this.category,
     required this.dateEnd,
-    required this.uploadedDate,
+    required this.insertDate,
     required this.imgPath,
     required this.officer,
   });
@@ -36,15 +36,15 @@ class LogisticsModel{
       "Stok": stock,
       "Kategori": category,
       "Tanggal Kadaluarsa":dateEnd,
-      "Tanggal Unggah":uploadedDate,
+      "Tanggal Masuk":insertDate,
       "Link Gambar": imgPath,
       "Nama Petugas": officer,
     };
   }
 
-  factory LogisticsModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document){
+  factory LogisticsInModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document){
     final data = document.data()!;
-    return LogisticsModel(
+    return LogisticsInModel(
         id: document.id,
         name: data['Nama Barang'] ?? '',
         source: data['Asal Perolehan'] ?? '',
@@ -53,7 +53,7 @@ class LogisticsModel{
         stock: double.parse(data['Stok'].toString()),
         category: data['Kategori'] ?? '',
         dateEnd: data['Tanggal Kadaluarsa'],
-        uploadedDate: data['Tanggal Kadaluarsa'],
+        insertDate: data['Tanggal Masuk'],
         imgPath: data['Link Gambar'] ?? '',
         officer: data['Nama Petugas'] ?? '',
     );

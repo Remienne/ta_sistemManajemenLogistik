@@ -4,18 +4,23 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:the_app/constants/colors.dart';
-
-import 'logistic_in.dart';
+import 'package:the_app/features/logisticMain/controllers/logistic_detail_controller.dart';
+import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
+import 'logistic_main.dart';
 
 class LogisticDetailsPage extends StatefulWidget {
   final Map<String, dynamic> data;
-  const LogisticDetailsPage({super.key, required this.data});
+  final String source;
+  const LogisticDetailsPage({super.key, required this.data, required this.source});
 
   @override
   State<LogisticDetailsPage> createState() => _LogisticDetailsPageState();
 }
 
 class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
+
+  final logisticDetailController = Get.put(LogisticDetailController());
+
   @override
   void initState() {
     super.initState();
@@ -36,8 +41,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-
-    var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
     DateTime expirationDate = (widget.data['Tanggal Kadaluarsa']).toDate();
@@ -53,16 +56,9 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
             onTap: () {
               Get.back();
             },
-            child: Container(
-              margin: EdgeInsets.only(left: screenWidth * 0.02, bottom: screenHeight * 0.01),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: taAccentColor, // Customize the color
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white, // Customize the color
-              ),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.white, // Customize the color
             ),
           ),
           title: Text(
@@ -134,7 +130,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
 
               //stok
               const Text(
-                'Stok',
+                'Jumlah',
                 style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey
@@ -168,6 +164,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     color: Colors.grey
                 ),
               ),
+
               Text(
                 expirationDate.isBefore(DateTime.now()) ? '$formatted (Telah Kadaluarsa)' : formatted,
                 style: TextStyle(
@@ -206,8 +203,36 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
               ),
               const SizedBox(height: 20),
 
-              // Divider
-              const Divider(),
+              if (widget.source == 'logistikIn')
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      LogisticsInModel logisticsIn = LogisticsInModel(
+                        id: widget.data['id'],
+                        name: widget.data['Nama Barang'],
+                        source: widget.data['Asal Perolehan'],
+                        storageId: widget.data['Rak'],
+                        units: widget.data['Satuan'],
+                        stock: double.parse(widget.data['Stok'].toString()),
+                        category: widget.data['Kategori'],
+                        dateEnd: widget.data['Tanggal Kadaluarsa'],
+                        insertDate: widget.data['Tanggal Masuk'], // You might want to adjust this field based on your data structure
+                        imgPath: widget.data['Link Gambar'],
+                        officer: widget.data['Nama Petugas'],
+                      );
+                      showDistributionPopup(context, logisticsIn);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
+                        backgroundColor: taAccentColor,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        )
+                    ),
+                    child: Text('Distribusikan Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
+                  ),
+                )
             ],
           ),
         ),
@@ -216,7 +241,82 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   }
 
   Future<bool> _onBackPressed() {
-    Get.offAll(const LogisticIn());
+    Get.back();
     return Future.value(false);
   }
+
+  showDistributionPopup(BuildContext context, LogisticsInModel logistics) {
+    double quantity = 0;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Masukkan Jumlah:',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              TextFormField(
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  quantity = double.tryParse(value) ?? 0;
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back();
+              },
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                  fontSize:12,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  logisticDetailController.distributeItemController(logistics, widget.data['id'], quantity);
+                  Get.offAll(() => const LogisticMain());
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: taAccentColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+              ),
+              child: Text(
+                'Konfirmasi',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.normal,
+                  fontSize:14,
+                ),
+              ),
+            ),
+            const SizedBox(width: 5,)
+          ],
+        );
+      },
+    );
+  }
+
+
 }
