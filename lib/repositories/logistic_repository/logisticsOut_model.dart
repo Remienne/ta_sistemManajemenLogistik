@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class LogisticsOutModel{
   final String? id;
   final String name;
-  final String source;
+  final String destination;
   final String storageId;
   final String units;
   final double stock;
+  final double remainingStock;
   final String category;
   Timestamp dateEnd;
   Timestamp distributeDate;
@@ -16,10 +17,11 @@ class LogisticsOutModel{
   LogisticsOutModel({
     this.id,
     required this.name,
-    required this.source,
+    required this.destination,
     required this.storageId,
     required this.units,
     required this.stock,
+    required this.remainingStock,
     required this.category,
     required this.dateEnd,
     required this.distributeDate,
@@ -30,10 +32,11 @@ class LogisticsOutModel{
   toJson(){
     return{
       "Nama Barang": name,
-      "Asal Perolehan": source,
+      "Tujuan Pengiriman": destination,
       "Rak": storageId,
       "Satuan": units,
       "Stok": stock,
+      "Sisa Stok": remainingStock,
       "Kategori": category,
       "Tanggal Kadaluarsa":dateEnd,
       "Tanggal Keluar":distributeDate,
@@ -47,10 +50,11 @@ class LogisticsOutModel{
     return LogisticsOutModel(
       id: document.id,
       name: data['Nama Barang'] ?? '',
-      source: data['Asal Perolehan'] ?? '',
+      destination: data['Tujuan Pengiriman'] ?? '',
       storageId: data['Rak'] ?? '',
       units: data['Satuan'] ?? '',
       stock: double.parse(data['Stok'].toString()),
+      remainingStock: double.parse(data['Sisa Stok'].toString()),
       category: data['Kategori'] ?? '',
       dateEnd: data['Tanggal Kadaluarsa'],
       distributeDate: data['Tanggal Keluar'],

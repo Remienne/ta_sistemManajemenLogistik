@@ -38,7 +38,7 @@ class LogisticDb extends GetxController{
     return docID2;
   }
 
-  Future<void> distributeItem(LogisticsInModel logistics, String id, double quantity) async {
+  Future<void> distributeItem(LogisticsInModel logistics, String id, double quantity, String destination) async {
     try {
       if (logistics.stock >= quantity) {
 
@@ -48,10 +48,11 @@ class LogisticDb extends GetxController{
         // Create an instance of LogisticsOutModel for the record in logistikKeluar
         LogisticsOutModel distributedItem = LogisticsOutModel(
           name: logistics.name,
-          source: logistics.source,
+          destination: destination,
           storageId: logistics.storageId,
           units: logistics.units,
           stock: quantity,
+          remainingStock: logistics.stock - quantity,
           category: logistics.category,
           dateEnd: logistics.dateEnd,
           distributeDate: logistics.insertDate,

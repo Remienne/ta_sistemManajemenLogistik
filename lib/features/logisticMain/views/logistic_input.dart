@@ -526,8 +526,8 @@ class _LogisticInputState extends State<LogisticInput> {
                                               "PERINGATAN!",
                                               "Gambar tidak boleh kosong. Unggah gambar untuk melanjutkan!",
                                               snackPosition: SnackPosition.BOTTOM,
-                                              backgroundColor: Colors.redAccent.withOpacity(0.1),
-                                              colorText: Colors.red
+                                              backgroundColor: Colors.redAccent,
+                                              colorText: Colors.white
                                           );
                                         } else {
                                           // Proceed with form submission logic
