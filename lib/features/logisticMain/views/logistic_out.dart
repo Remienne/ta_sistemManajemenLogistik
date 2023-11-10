@@ -127,7 +127,7 @@ class _LogisticOutState extends State<LogisticOut> {
                         itemBuilder: (c, index) {
                           DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
                           bool isExpired = expirationDate.isBefore(DateTime.now());
-                          String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+                          String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
 
                           // Check if the current item is expired
                           if (isExpired) {
@@ -617,7 +617,7 @@ class _LogisticOutState extends State<LogisticOut> {
                       _selectedFilterOption2.clear();
                       _defaultSelectedStartDate = DateTime(picked.year, picked.month, picked.day, 00, 00, 00);
                       _selectedFilterOption2.add(_defaultSelectedStartDate);
-                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedStartDate);
+                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_defaultSelectedStartDate);
                     });
                   }
                 }
@@ -647,7 +647,7 @@ class _LogisticOutState extends State<LogisticOut> {
                         _selectedFilterOption2.removeAt(1);
                       }
                       _selectedFilterOption2.add(_defaultSelectedEndDate);
-                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedEndDate);
+                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_defaultSelectedEndDate);
                     });
                   }
                 }
@@ -669,7 +669,7 @@ class _LogisticOutState extends State<LogisticOut> {
     List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Keluar', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
 
     DateTime dateNow = DateTime.now();
-    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
+    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);
 
     // Set the number of rows you want to display on each page
     const int firstPageRow = 7;

@@ -45,7 +45,6 @@ dependencies:
   firebase_storage: ^11.2.8
   path: ^1.8.3
   image_picker: ^1.0.4
-  intl: ^0.18.1
   rflutter_alert: ^2.0.7
   rename: ^3.0.0
   dots_indicator: ^3.0.0
@@ -57,6 +56,9 @@ dependencies:
   share: ^2.0.4
   cached_network_image: ^3.3.0
   pdfx: ^2.5.0
+  intl: ^0.18.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

@@ -44,7 +44,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
     var screenHeight = MediaQuery.of(context).size.height;
 
     DateTime expirationDate = (widget.data['Tanggal Kadaluarsa']).toDate();
-    String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+    String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
 
     return WillPopScope(
       onWillPop: _onBackPressed,

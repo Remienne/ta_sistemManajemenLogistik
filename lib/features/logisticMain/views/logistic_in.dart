@@ -8,6 +8,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdfx/pdfx.dart' as pdfx_show;
@@ -112,7 +113,7 @@ class _LogisticInState extends State<LogisticIn> {
                             itemBuilder: (c, index) {
                               DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
                               bool isExpired = expirationDate.isBefore(DateTime.now());
-                              String formatted = DateFormat('EEEE, d MMMM yyyy').format(expirationDate);
+                              String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
 
                               // Check if the current item is expired
                               if (isExpired) {
@@ -628,13 +629,14 @@ class _LogisticInState extends State<LogisticIn> {
                       context: context,
                       initialDate: DateTime.now(),
                       firstDate: DateTime(2001),
-                      lastDate: DateTime(2101));
+                      lastDate: DateTime(2101)
+                  );
                   if (picked != null && picked != _defaultSelectedStartDate) {
                     setState(() {
                       _selectedFilterOption2.clear();
                       _defaultSelectedStartDate = DateTime(picked.year, picked.month, picked.day, 00, 00, 00);
                       _selectedFilterOption2.add(_defaultSelectedStartDate);
-                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedStartDate);
+                      _selectedStartDateController.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_defaultSelectedStartDate);
                     });
                   }
                 }
@@ -664,7 +666,7 @@ class _LogisticInState extends State<LogisticIn> {
                         _selectedFilterOption2.removeAt(1);
                       }
                       _selectedFilterOption2.add(_defaultSelectedEndDate);
-                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy').format(_defaultSelectedEndDate);
+                      _selectedEndDateController.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_defaultSelectedEndDate);
                     });
                   }
                 }
@@ -676,6 +678,9 @@ class _LogisticInState extends State<LogisticIn> {
   }
 
   Future<void> generatePDF() async {
+    // Initialize the localization
+    await initializeDateFormatting('id_ID', null);
+
     // Generate PDF and fetch a Logo
     final pdf = pw.Document();
     final ByteData image = await rootBundle.load(taSplashImage);
@@ -686,7 +691,7 @@ class _LogisticInState extends State<LogisticIn> {
     List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Masuk', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
 
     DateTime dateNow = DateTime.now();
-    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy').format(dateNow);
+    String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);
 
     // Set the number of rows you want to display on each page
     const int firstPageRow = 7;
@@ -832,7 +837,7 @@ class _LogisticInState extends State<LogisticIn> {
                                 final formattedValue = fieldValue is num
                                     ? fieldValue.toInt().toString()
                                     : fieldValue is Timestamp
-                                    ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
+                                    ? DateFormat('dd/MM/yyyy', 'id_ID').format(fieldValue.toDate())
                                     : fieldValue.toString();
 
                                 return pw.Padding(
@@ -934,7 +939,7 @@ class _LogisticInState extends State<LogisticIn> {
                           final formattedValue = fieldValue is num
                               ? fieldValue.toInt().toString()
                               : fieldValue is Timestamp
-                              ? DateFormat('dd/MM/yyyy').format(fieldValue.toDate())
+                              ? DateFormat('dd/MM/yyyy', 'id_ID').format(fieldValue.toDate())
                               : fieldValue.toString();
 
                           return pw.Padding(
