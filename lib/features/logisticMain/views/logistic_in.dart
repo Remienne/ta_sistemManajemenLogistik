@@ -358,6 +358,10 @@ class _LogisticInState extends State<LogisticIn> {
   DateTime _defaultSelectedEndDate = DateTime.parse('2077-12-30 12:00:00Z');
   final _selectedEndDateController = TextEditingController();
 
+  bool _isStartDateSelected = false; //start date condition check
+  final FocusNode _startDateFocusNode = FocusNode(); //start date text field focus controller
+  final FocusNode _endDateFocusNode = FocusNode(); //end date text field focus controller
+
   getRecords()async{
     setState(() {
       _isLoading = true;
@@ -489,6 +493,7 @@ class _LogisticInState extends State<LogisticIn> {
   }
 
   void _showFilterPopup(BuildContext context) {
+    bool isButtonDisabled = false;
     Get.dialog(
         barrierDismissible: false,
         WillPopScope(
@@ -512,9 +517,13 @@ class _LogisticInState extends State<LogisticIn> {
                 ),
                 content: _buildFilterContents(setState),
                 actions: [
+                  //hapus semua
                   TextButton(
                     onPressed: () {
                       setState(() {
+                        _isStartDateSelected = false;
+                        _startDateFocusNode.unfocus();
+                        _endDateFocusNode.unfocus();
                         _selectedFilterOption.clear();
                         _selectedFilterOption2.clear();
                         _selectedStartDateController.clear();
@@ -524,7 +533,7 @@ class _LogisticInState extends State<LogisticIn> {
                       });
                     },
                     child: Text(
-                      'Hapus',
+                      'Hapus Semua',
                       style: GoogleFonts.poppins(
                         color: Colors.grey,
                         fontWeight: FontWeight.w400,
@@ -532,6 +541,8 @@ class _LogisticInState extends State<LogisticIn> {
                       ),
                     ),
                   ),
+
+                  //terapkan
                   ShakeMe(
                     // pass the GlobalKey as an argument
                     key: shakeKey,
@@ -540,16 +551,56 @@ class _LogisticInState extends State<LogisticIn> {
                     shakeOffset: 5,
                     shakeDuration: const Duration(milliseconds: 500),
                     child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          getRecords();
-                          _shouldUpdateSortButtonColor = true;
-                          _updateSortButtonColor();
-                        });
-                        Get.back(); // Pass true to indicate success or any other data you need
-                      },
+                      onPressed: isButtonDisabled
+                          ? () {} // Disable the button if _isButtonDisabled is true
+                          : () async {
+                              // Your validation logic
+                              if (_defaultSelectedEndDate.isBefore(_defaultSelectedStartDate)) {
+                                // Handle validation error, show a Snackbar
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Get.snackbar(
+                                  "Peringatan!",
+                                  "Tanggal Akhir tidak dapat sebelum Tanggal Awal. Mohon cek kembali.",
+                                  duration: const Duration(milliseconds: 1500),
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.redAccent,
+                                  colorText: Colors.white,
+                                );
+                                await Future.delayed(const Duration(seconds: 2));
+                                setState(() {
+                                  isButtonDisabled = false;
+                                });
+                              } else if (_defaultSelectedEndDate.isAtSameMomentAs(_defaultSelectedStartDate)) {
+                                // Handle validation error, show a Snackbar
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Get.snackbar(
+                                  "Peringatan!",
+                                  "Tanggal Akhir tidak dapat sama dengan Tanggal Awal. Mohon cek kembali.",
+                                  duration: const Duration(milliseconds: 1500),
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.redAccent,
+                                  colorText: Colors.white,
+                                );
+                                await Future.delayed(const Duration(seconds: 2));
+                                setState(() {
+                                  isButtonDisabled = false;
+                                });
+                              }
+                              else {
+                                setState(() {
+                                  Get.back();
+                                  _shouldUpdateSortButtonColor = true;
+                                  _updateSortButtonColor();
+                                  getRecords();
+                                });
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: taAccentColor,
+                        backgroundColor: isButtonDisabled ? Colors.grey : taAccentColor,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(15)),
                         ),
@@ -564,6 +615,7 @@ class _LogisticInState extends State<LogisticIn> {
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 5,)
                 ],
               );
@@ -578,6 +630,7 @@ class _LogisticInState extends State<LogisticIn> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //filter chips for categories
             Text(
               'Kategori',
               style: GoogleFonts.poppins(
@@ -616,6 +669,8 @@ class _LogisticInState extends State<LogisticIn> {
               ],
             ),
             const SizedBox(height: 10,),
+
+            //filter using date range
             Text(
               'Tanggal Masuk',
               style: GoogleFonts.poppins(
@@ -624,6 +679,8 @@ class _LogisticInState extends State<LogisticIn> {
               ),
             ),
             const SizedBox(height: 5,),
+
+            //start date
             TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 controller: _selectedStartDateController,
@@ -643,6 +700,7 @@ class _LogisticInState extends State<LogisticIn> {
                   );
                   if (picked != null && picked != _defaultSelectedStartDate) {
                     setState(() {
+                      _isStartDateSelected = true;
                       _selectedFilterOption2.clear();
                       _defaultSelectedStartDate = DateTime(picked.year, picked.month, picked.day, 00, 00, 00);
                       _selectedFilterOption2.add(_defaultSelectedStartDate);
@@ -651,6 +709,7 @@ class _LogisticInState extends State<LogisticIn> {
                   }
                 }
             ),
+            //end date
             const SizedBox(height: 10,),
             TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -662,7 +721,19 @@ class _LogisticInState extends State<LogisticIn> {
                 decoration: const InputDecoration(
                   labelText: 'Akhir',
                 ),
+                focusNode: _endDateFocusNode,
                 onTap: () async {
+                  if (!_isStartDateSelected){
+                    _endDateFocusNode.unfocus();
+                    Get.snackbar(
+                        "Peringatan!",
+                        "Tanggal Awal harus dipilih terlebih dahulu. Mohon cek kembali.",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white
+                    );
+                    return;
+                  }
                   final DateTime? picked = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
