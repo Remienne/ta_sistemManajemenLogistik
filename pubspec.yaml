@@ -57,6 +57,7 @@ dependencies:
   cached_network_image: ^3.3.0
   pdfx: ^2.5.0
   intl: ^0.18.0
+  flutter_shakemywidget: ^1.0.5+1
   flutter_localizations:
     sdk: flutter
 

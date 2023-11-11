@@ -38,31 +38,44 @@ class _LogisticInputState extends State<LogisticInput> {
   firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
   File? _image;
   final ImagePicker _imagePicker = ImagePicker();
+  final List<String> _previousImageUrls = [];
 
   Future imgFromGallery() async {
     final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
 
     setState(() {
       if (pickedFile != null) {
+        // Delete previous images if they exist
+        for (String imageUrl in _previousImageUrls) {
+          deletePreviousImage(imageUrl);
+        }
+
         _image = File(pickedFile.path);
+
         Get.snackbar(
-            "Proses upload dalam proses...",
-            "Mohon tunggu.",
+            "Sedang dalam proses unggah",
+            "Mohon tunggu sebentar...",
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.yellowAccent
+            backgroundColor: taWarningBackgroundColor,
+            colorText: Colors.white
         );
-        uploadFile().then((value) => _urlItemImage = value);
+
+        uploadFile().then((value) {
+          _urlItemImage = value;
+          _previousImageUrls.add(value); // Add the new image URL to the list
+        });
+
         Get.snackbar(
-            "Sukses!",
-            "Gambar berhasil diunggah.",
+            "Proses unggah selesai",
+            "Gambar berhasil diunggah!",
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.green
+            backgroundColor: Colors.green,
+            colorText: Colors.white
         );
+
         setState(() {});
       } else {
-        debugPrint('No image selected.');
+        debugPrint('No image uploaded.');
       }
     });
   }
@@ -72,25 +85,36 @@ class _LogisticInputState extends State<LogisticInput> {
 
     setState(() {
       if (pickedFile != null) {
+        // Delete previous images if they exist
+        for (String imageUrl in _previousImageUrls) {
+          deletePreviousImage(imageUrl);
+        }
+
         _image = File(pickedFile.path);
+
         Get.snackbar(
-            "Proses upload dalam proses...",
-            "Mohon tunggu.",
+            "Sedang dalam proses unggah",
+            "Mohon tunggu sebentar...",
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.yellowAccent
+            backgroundColor: taWarningBackgroundColor,
+            colorText: Colors.white
         );
-        uploadFile().then((value) => _urlItemImage = value);
+
+        uploadFile().then((value) {
+          _urlItemImage = value;
+          _previousImageUrls.add(value); // Add the new image URL to the list
+        });
+
         Get.snackbar(
-            "Sukses!",
-            "Gambar berhasil diunggah.",
+            "Proses unggah selesai",
+            "Gambar berhasil diunggah!",
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.green
+            backgroundColor: Colors.green,
+            colorText: Colors.white
         );
         setState(() {});
       } else {
-        debugPrint('No image selected.');
+        debugPrint('No image uploaded.');
       }
     });
   }
@@ -105,6 +129,14 @@ class _LogisticInputState extends State<LogisticInput> {
       return await imgRef.getDownloadURL();
     } on firebase_storage.FirebaseException {
       debugPrint('error occured');
+    }
+  }
+
+  Future deletePreviousImage(String imageUrl) async {
+    try {
+      await firebase_storage.FirebaseStorage.instance.refFromURL(imageUrl).delete();
+    } catch (e) {
+      debugPrint('Error deleting previous image: $e');
     }
   }
 

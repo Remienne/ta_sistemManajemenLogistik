@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -326,6 +327,8 @@ class _LogisticInState extends State<LogisticIn> {
     super.dispose();
   }
 
+  final shakeKey = GlobalKey<ShakeWidgetState>();
+
   final TextEditingController _searchController = TextEditingController();
 
   List _allResults =[]; //temporary array list for storing values from firebase
@@ -472,83 +475,6 @@ class _LogisticInState extends State<LogisticIn> {
 
   }
 
-  void _showFilterPopup(BuildContext context) {
-    // Create a GlobalKey for the button
-    GlobalKey key = GlobalKey();
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: Text(
-                'Filter Data',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
-              ),
-              content: _buildFilterContents(setState),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFilterOption.clear();
-                      _selectedFilterOption2.clear();
-                      _selectedStartDateController.clear();
-                      _selectedEndDateController.clear();
-                      _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
-                      _defaultSelectedEndDate = DateTime.parse('2101-12-31 12:00:00Z');
-                    });
-                  },
-                  child: Text(
-                    'Hapus',
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize:12,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  key: key,
-                  onPressed: () {
-                    setState(() {
-                      getRecords();
-                      _shouldUpdateSortButtonColor = true;
-                      _updateSortButtonColor();
-                    });
-                    Get.back(); // Pass true to indicate success or any other data you need
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: taAccentColor,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                    ),
-                  ),
-                  child: Text(
-                    'Terapkan',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.normal,
-                      fontSize:14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 5,)
-              ],
-            );
-          },
-        );
-      },
-    ).then((result){
-    });
-  }
-
   void _updateSortButtonColor() {
     setState(() {
       // Check if filters are applied and update the sort button color
@@ -562,6 +488,90 @@ class _LogisticInState extends State<LogisticIn> {
     });
   }
 
+  void _showFilterPopup(BuildContext context) {
+    Get.dialog(
+        barrierDismissible: false,
+        WillPopScope(
+          onWillPop: () async {
+            // Return false to prevent closing if the user selects 'No'
+            shakeKey.currentState?.shake();
+            return false;
+          },
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: Text(
+                  'Filter Data',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+                ),
+                content: _buildFilterContents(setState),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedFilterOption.clear();
+                        _selectedFilterOption2.clear();
+                        _selectedStartDateController.clear();
+                        _selectedEndDateController.clear();
+                        _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+                        _defaultSelectedEndDate = DateTime.parse('2101-12-31 12:00:00Z');
+                      });
+                    },
+                    child: Text(
+                      'Hapus',
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w400,
+                        fontSize:12,
+                      ),
+                    ),
+                  ),
+                  ShakeMe(
+                    // pass the GlobalKey as an argument
+                    key: shakeKey,
+                    // configure the animation parameters
+                    shakeCount: 3,
+                    shakeOffset: 5,
+                    shakeDuration: const Duration(milliseconds: 500),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          getRecords();
+                          _shouldUpdateSortButtonColor = true;
+                          _updateSortButtonColor();
+                        });
+                        Get.back(); // Pass true to indicate success or any other data you need
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: taAccentColor,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        ),
+                      ),
+                      child: Text(
+                        'Terapkan',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.normal,
+                          fontSize:14,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 5,)
+                ],
+              );
+            },
+          ),
+        )
+    );
+  }
   Widget _buildFilterContents(StateSetter setState) {
     return Wrap(
       children: [

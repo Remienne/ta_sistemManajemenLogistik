@@ -10,32 +10,30 @@ class LogisticDb extends GetxController{
   final _dbLogistikKeluar = FirebaseFirestore.instance.collection('logistikKeluar');
 
   insertLogisticAlert(LogisticsInModel logistics) async {
-    await _dbLogistikMasuk.add(logistics.toJson()).whenComplete(() {
+    try {
+      await _dbLogistikMasuk.add(logistics.toJson());
       Get.snackbar(
-          "Sukses!",
-          "Item berhasil ditambahkan.",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.greenAccent.withOpacity(0.1),
-          colorText: Colors.green
+        "Sukses!",
+        "Item berhasil ditambahkan.",
+        snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white
       );
-    }).catchError((error, stackTrace){
+
+      // Return a placeholder DocumentReference to match the expected type
+      return Future.value(_dbLogistikMasuk.doc()); // Replace with the correct method if available
+    } catch (error) {
       Get.snackbar(
-          "Error",
-          "Something went wrong. Try again!",
-          snackPosition:SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent.withOpacity(0.1),
-          colorText: Colors.red
+        "Error",
+        "Something went wrong. Try again!",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
       );
-      return null;
-    });
 
-  }
-
-  Future<String> getData() async {
-    DocumentReference docRef = _dbLogistikMasuk.doc();
-    DocumentSnapshot docSnap = await docRef.get();
-    var docID2= docSnap.reference.id;
-    return docID2;
+      // Return a FutureOr<DocumentReference<Map<String, dynamic>>>
+      return Future.value(null);
+    }
   }
 
   Future<void> distributeItem(LogisticsInModel logistics, String id, double quantity, String destination) async {

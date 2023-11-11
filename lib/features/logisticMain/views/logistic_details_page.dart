@@ -249,7 +249,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                           )
                       ),
-                      child: Text('Distribusikan Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
+                      child: Text('Lanjutkan untuk barang keluar', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
                     ),
                   )
               ],
@@ -482,7 +482,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
         ),
       );
     }
-    return const Text('sdsd');
+    return const Text('Null');
   }
 
   Future<bool> _onBackPressed() {
@@ -505,9 +505,9 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Masukkan Informasi Tambahan: ',
+                  'Informasi Barang Keluar: ',
                   style: GoogleFonts.poppins(
-                    fontSize: 15.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -523,7 +523,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                   },
                   controller: logisticDetailController.quantity,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: false, signed: true),
                 ),

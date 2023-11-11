@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -305,7 +306,9 @@ class _LogisticOutState extends State<LogisticOut> {
     return Future.value(false);
   }
 
-  final TextEditingController _searchController = TextEditingController();
+  final shakeKey = GlobalKey<ShakeWidgetState>(); //widget shaker key
+
+  final TextEditingController _searchController = TextEditingController(); //handling the search text
 
   List _allResults =[]; //temporary array list for storing values from firebase
 
@@ -453,84 +456,6 @@ class _LogisticOutState extends State<LogisticOut> {
 
   }
 
-  void _showFilterPopup(BuildContext context) {
-    // Create a GlobalKey for the button
-    GlobalKey key = GlobalKey();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: Text(
-                'Filter Data',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
-              ),
-              content: _buildFilterContents(setState),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFilterOption.clear();
-                      _selectedFilterOption2.clear();
-                      _selectedStartDateController.clear();
-                      _selectedEndDateController.clear();
-                      _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
-                      _defaultSelectedEndDate = DateTime.parse('2101-12-31 12:00:00Z');
-                    });
-                  },
-                  child: Text(
-                    'Hapus',
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize:12,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  key: key,
-                  onPressed: () {
-                    setState(() {
-                      getRecords();
-                      _shouldUpdateSortButtonColor = true;
-                      _updateSortButtonColor();
-                    });
-                    Get.back(); // Pass true to indicate success or any other data you need
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: taAccentColor,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                    ),
-                  ),
-                  child: Text(
-                    'Terapkan',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.normal,
-                      fontSize:14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 5,)
-              ],
-            );
-          },
-        );
-      },
-    ).then((result){
-    });
-  }
-
   void _updateSortButtonColor() {
     setState(() {
       // Check if filters are applied and update the sort button color
@@ -544,6 +469,90 @@ class _LogisticOutState extends State<LogisticOut> {
     });
   }
 
+  void _showFilterPopup(BuildContext context) {
+    Get.dialog(
+        barrierDismissible: false,
+        WillPopScope(
+          onWillPop: () async {
+            // Return false to prevent closing if the user selects 'No'
+            shakeKey.currentState?.shake();
+            return false;
+          },
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: Text(
+                  'Filter Data',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+                ),
+                content: _buildFilterContents(setState),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedFilterOption.clear();
+                        _selectedFilterOption2.clear();
+                        _selectedStartDateController.clear();
+                        _selectedEndDateController.clear();
+                        _defaultSelectedStartDate = DateTime.parse('1990-01-01 12:00:00Z');
+                        _defaultSelectedEndDate = DateTime.parse('2101-12-31 12:00:00Z');
+                      });
+                    },
+                    child: Text(
+                      'Hapus',
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w400,
+                        fontSize:12,
+                      ),
+                    ),
+                  ),
+                  ShakeMe(
+                    // pass the GlobalKey as an argument
+                    key: shakeKey,
+                    // configure the animation parameters
+                    shakeCount: 3,
+                    shakeOffset: 5,
+                    shakeDuration: const Duration(milliseconds: 500),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          getRecords();
+                          _shouldUpdateSortButtonColor = true;
+                          _updateSortButtonColor();
+                        });
+                        Get.back(); // Pass true to indicate success or any other data you need
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: taAccentColor,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        ),
+                      ),
+                      child: Text(
+                        'Terapkan',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.normal,
+                          fontSize:14,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 5,)
+                ],
+              );
+            },
+          ),
+        )
+    );
+  }
   Widget _buildFilterContents(StateSetter setState) {
     return Wrap(
       children: [
@@ -665,8 +674,8 @@ class _LogisticOutState extends State<LogisticOut> {
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Keluar', 'Kadaluarsa', 'Asal Perolehan'];
-    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Keluar', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Keluar', 'Detail Pengiriman', 'Sisa Stok'];
+    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Keluar', 'Tujuan Pengiriman', 'Sisa Stok'];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);
@@ -685,9 +694,9 @@ class _LogisticOutState extends State<LogisticOut> {
       2: const pw.FixedColumnWidth(30.0), // 'stok' column
       3: const pw.FixedColumnWidth(28.0), // 'Satuan' column
       4: const pw.FixedColumnWidth(47.0), // 'Jenis Barang' column
-      5: const pw.FixedColumnWidth(53.0), // 'Tanggal Keluar' column
-      6: const pw.FixedColumnWidth(40.0), // 'Kadaluarsa' column
-      7: const pw.FixedColumnWidth(52.0), // 'Perolehan' column
+      5: const pw.FixedColumnWidth(51.0), // 'Tanggal Keluar' column
+      6: const pw.FixedColumnWidth(59.0), // 'Tujuan' column
+      7: const pw.FixedColumnWidth(35.0), // 'Sisa Stok' column
       // Add more fields and their corresponding widths
     };
 
