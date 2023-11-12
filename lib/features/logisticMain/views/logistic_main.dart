@@ -80,9 +80,9 @@ class _LogisticMainState extends State<LogisticMain> {
                 DialogButton(
                   onPressed: () => Get.back(),
                   color: Colors.white,
-                  child: const Text(
+                  child: Text(
                     "Tidak",
-                    style: TextStyle(color: taPrimaryColor),
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
                   ),
                 ),
               ],

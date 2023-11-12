@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 
 class LoginPage extends StatefulWidget {
-  static const routeName = '/login';
   const LoginPage({super.key});
 
   @override
@@ -27,8 +27,27 @@ class _LoginPageState extends State<LoginPage> {
     final password = _password.value.text;
 
     setState(() => _loading = true);
-    await authController.login(email, password);
+
+    final errorMessage = await authController.login(email, password);
+
     setState(() => _loading = false);
+
+    if (errorMessage != null) {
+      // Show a Snackbar with the error message
+      Get.snackbar(
+        "PERINGATAN!",
+        errorMessage,
+        duration: const Duration(milliseconds: 1500),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    } else {
+      // Successful login, navigate to the next screen
+      await Future.delayed(const Duration(seconds: 1));
+      // Navigate to the next screen
+    }
+
     await Future.delayed(const Duration(seconds: 1));
   }
 
@@ -37,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
     var vanish = MediaQuery.of(context).viewInsets.bottom == 0;
+    AutovalidateMode autoValidateMode = AutovalidateMode.disabled;
 
     return Scaffold(
         resizeToAvoidBottomInset : true,
@@ -49,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
               right: 0,
               child: Column(
                   children: [
+                    //titles
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -73,10 +94,11 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+                    //form
                     Container(
                       height: screenHeight * 0.45,
                       margin: EdgeInsets.only(top: vanish ? screenHeight * 0.18 : screenHeight * 0.05),
-                      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 40),
+                      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 26),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.only(
@@ -85,6 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       child: Form(
+                        autovalidateMode: autoValidateMode,
                         key: _formKey,
                         child: Column(
                           children: [
@@ -109,9 +132,13 @@ class _LoginPageState extends State<LoginPage> {
                             // Username input field
                             TextFormField(
                               controller: _email,
+                              keyboardType: TextInputType.emailAddress,
                               validator: (value){
                                 if (value == null || value.isEmpty){
-                                  return 'Masukkan Email Anda!';
+                                  return 'Masukkan email Anda!';
+                                }
+                                if (!RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$').hasMatch(value)) {
+                                  return 'Masukkan alamat email yang valid';
                                 }
                                 return null;
                               },
@@ -137,6 +164,12 @@ class _LoginPageState extends State<LoginPage> {
                             // Password input field
                             TextFormField(
                               controller: _password,
+                              validator: (value){
+                                if (value == null || value.isEmpty){
+                                  return 'Masukkan password Anda!';
+                                }
+                                return null;
+                              },
                               obscureText: true,
                               style: GoogleFonts.roboto(fontSize: 18,),
                               decoration: const InputDecoration(
@@ -168,7 +201,10 @@ class _LoginPageState extends State<LoginPage> {
                                       borderRadius: BorderRadius.all(Radius.circular(15)),
                                     )
                                 ),
-                                onPressed: () => handleSubmit(),
+                                onPressed: () {
+                                  autoValidateMode = AutovalidateMode.onUserInteraction;
+                                  handleSubmit();
+                                } ,
                                 child: _loading
                                 ? const SizedBox(
                                   width: 20,

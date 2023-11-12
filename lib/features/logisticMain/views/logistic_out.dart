@@ -516,9 +516,9 @@ class _LogisticOutState extends State<LogisticOut> {
                     child: Text(
                       'Hapus Semua',
                       style: GoogleFonts.poppins(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w400,
-                        fontSize:12,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.normal,
+                        fontSize:14,
                       ),
                     ),
                   ),

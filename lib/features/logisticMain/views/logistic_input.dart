@@ -630,9 +630,9 @@ class _LogisticInputState extends State<LogisticInput> {
                                   DialogButton(
                                     onPressed: () => Get.back(),
                                     color: Colors.white,
-                                    child: const Text(
+                                    child: Text(
                                       "Tidak",
-                                      style: TextStyle(color: taPrimaryColor, fontSize: 15),
+                                      style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
                                     ),
                                   ),
                                 ],
