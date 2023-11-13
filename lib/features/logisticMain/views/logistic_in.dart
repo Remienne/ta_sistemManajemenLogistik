@@ -401,7 +401,7 @@ class _LogisticInState extends State<LogisticIn> {
 
     if (_selectedFilterOption2.isNotEmpty) {
       // If only one filter option is selected, use normal where
-      if (_selectedFilterOption2.length == 1) {
+      if(_selectedFilterOption2.length == 1){
         query = query
             .where('Tanggal Masuk', isGreaterThanOrEqualTo: _defaultSelectedStartDate)
             .where('Tanggal Masuk', isLessThan: defaultEndDate);
@@ -450,8 +450,6 @@ class _LogisticInState extends State<LogisticIn> {
       return tanggalKadaluarsaA.compareTo(tanggalKadaluarsaB);
     });
     _searchResultList();
-    debugPrint(_defaultSelectedStartDate.toString());
-    debugPrint(_defaultSelectedEndDate.toString());
   }
 
   _onSearchChanged() {
@@ -768,8 +766,16 @@ class _LogisticInState extends State<LogisticIn> {
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Masuk', 'Kadaluarsa', 'Asal Perolehan'];
-    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Masuk', 'Tanggal Kadaluarsa', 'Asal Perolehan'];
+    List<String> fieldName = [
+      'No', 'Nama', 'Jumlah',
+      'Satuan', 'Jenis Barang', 'Tanggal Masuk',
+      'Kadaluarsa', 'Asal Perolehan'
+    ];
+    List<String> fieldContentsFrom = [
+      'Nama Barang', 'Stok',
+      'Satuan', 'Kategori',
+      'Tanggal Masuk', 'Tanggal Kadaluarsa',
+      'Asal Perolehan'];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);

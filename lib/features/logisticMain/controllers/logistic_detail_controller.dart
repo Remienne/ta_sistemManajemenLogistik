@@ -11,7 +11,12 @@ class LogisticDetailController extends GetxController{
   static LogisticDetailController get instance => Get.find();
   final logisticDb = Get.put(LogisticDb());
 
-  Future<void> distributeItemController(LogisticsInModel logistics, String id, double quantity, String destination) async {
+  Future<void> distributeItemController(
+      LogisticsInModel logistics,
+      String id,
+      double quantity,
+      String destination
+      ) async {
     await logisticDb.distributeItem(logistics, id, quantity, destination);
   }
 }

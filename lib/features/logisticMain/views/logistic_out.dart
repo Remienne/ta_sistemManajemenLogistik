@@ -380,7 +380,7 @@ class _LogisticOutState extends State<LogisticOut> {
 
     if (_selectedFilterOption2.isNotEmpty) {
       // If only one filter option is selected, use normal where
-      if (_selectedFilterOption2.length == 1) {
+      if (_selectedFilterOption2.length == 1){
         query = query
             .where('Tanggal Keluar', isGreaterThanOrEqualTo: _defaultSelectedStartDate)
             .where('Tanggal Keluar', isLessThan: defaultEndDate);

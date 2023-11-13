@@ -564,7 +564,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
               onPressed: () {
                 if(_formKey.currentState!.validate()){
                   final quantityText = logisticDetailController.quantity.text.trim();
-
                   // Check if the input contains only digits
                   if (!RegExp(r'^\d+$').hasMatch(quantityText))  {
                     // Show an error message or handle the invalid input here
@@ -577,9 +576,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     );
                     return;
                   }
-
                   final quantity = double.tryParse(quantityText);
-
                   if (quantity == null) {
                     // Show an error message or handle the invalid input here
                     Get.snackbar(
@@ -613,7 +610,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                       );
                       return;
                     }
-
                     final destination = logisticDetailController.destination.text.trim();
                     setState(() {
                       logisticDetailController.distributeItemController(

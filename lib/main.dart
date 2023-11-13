@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
@@ -13,13 +12,9 @@ void main() async {
     Get.put(AuthenticationRepository());
   });
 
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-
   await initializeDateFormatting('id_ID', null);
 
   runApp(const MyApp());
-
-  FlutterNativeSplash.remove();
 }
 
 

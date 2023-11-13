@@ -65,8 +65,8 @@ class LogisticDb extends GetxController{
           "Sukses!",
           "Item berhasil didistribusikan.",
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.withOpacity(0.1),
-          colorText: Colors.green,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
         );
       }
       else {
@@ -74,8 +74,8 @@ class LogisticDb extends GetxController{
           "Gagal!",
           "Stok tidak mencukupi untuk distribusi.",
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent.withOpacity(0.1),
-          colorText: Colors.red,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
