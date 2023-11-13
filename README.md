@@ -1,6 +1,7 @@
-# the_app
+# LogPal (Logistik & Peralatan) BPBD Kabupaten Malang
 
-A new Flutter project.
+Sebuah Sistem Manajemen Logistik berbasis Android
+Dirancang sebagai syarat penyelesaian Tugas Akhir
 
 ## Getting Started
 
