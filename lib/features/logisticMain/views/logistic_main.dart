@@ -215,7 +215,7 @@ class _LogisticMainState extends State<LogisticMain> {
                               ),
                             ),
                             Text(
-                              'Versi 1.8.10',
+                              'Versi 1.8.11',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -291,7 +291,6 @@ class _LogisticMainState extends State<LogisticMain> {
                   ],
                 ),
                 actions: [
-                  //hapus semua
                   TextButton(
                     onPressed: () {
                       setState(() {

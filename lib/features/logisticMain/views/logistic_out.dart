@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
@@ -1048,40 +1049,50 @@ class _LogisticOutState extends State<LogisticOut> {
         context: context,
         builder: (context) {
           return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+            ),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              height: 400,
+              height: 200,
               child: pdfx_show.PdfViewPinch(controller: pdfPinchController,),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                },
-                child: Text(
-                  'Tutup Pratinjau',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize:12,
-                      color: Colors.grey
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Get.back();// Close the preview
-                  // Share the PDF file
-                  Share.shareFiles([file.path]);
-                },
-                child: Text(
-                  'Bagikan',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize:15,
-                      color: taPrimaryColor
-                  ),
-                ),
-              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: Text(
+                        'Tutup',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize:12,
+                            color: Colors.grey
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                        onPressed: () {
+                          Get.back();// Close the preview
+                          // Save to 'Downloads' folder
+                          DocumentFileSavePlus().saveMultipleFiles(
+                            dataList: [bytes,],
+                            fileNameList: ["Laporan Logistik Keluar.pdf",],
+                            mimeTypeList: ["application/pdf",],
+                          );
+                          // Share the PDF file
+                          Share.shareFiles([file.path]);
+                        },
+                        icon: const Icon(Icons.share_rounded, color: taPrimaryColor,)
+                    ),
+                  ],
+                )
+              )
             ],
           );
         },

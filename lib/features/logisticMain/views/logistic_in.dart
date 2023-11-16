@@ -1062,46 +1062,50 @@ class _LogisticInState extends State<LogisticIn> {
         context: context,
         builder: (context) {
           return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+            ),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
-              height: 400,
+              height: 200,
               child: pdfx_show.PdfViewPinch(controller: pdfPinchController,),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                },
-                child: Text(
-                  'Tutup Pratinjau',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize:12,
-                    color: Colors.grey
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: Text(
+                        'Tutup',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize:12,
+                            color: Colors.grey
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                        onPressed: () {
+                          Get.back();
+                          // Save to 'Downloads' folder
+                          DocumentFileSavePlus().saveMultipleFiles(
+                            dataList: [bytes,],
+                            fileNameList: ["Laporan Logistik Masuk.pdf",],
+                            mimeTypeList: ["application/pdf",],
+                          );
+                          // Share the PDF file
+                          Share.shareFiles([file.path]);
+                        },
+                        icon: const Icon(Icons.share_rounded, color: taPrimaryColor,)
+                    ),
+                  ],
                 ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Get.back();
-                  // Save to 'Downloads' folder
-                  DocumentFileSavePlus().saveMultipleFiles(
-                    dataList: [bytes,],
-                    fileNameList: ["Laporan Logistik Masuk.pdf",],
-                    mimeTypeList: ["application/pdf",],
-                  );
-                  // Share the PDF file
-                  Share.shareFiles([file.path]);
-                },
-                child: Text(
-                  'Bagikan',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize:15,
-                      color: taPrimaryColor
-                  ),
-                ),
-              ),
+              )
             ],
           );
         },
