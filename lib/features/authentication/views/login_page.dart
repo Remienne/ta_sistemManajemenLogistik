@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
+import 'package:the_app/constants/text_strings.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 
 class LoginPage extends StatefulWidget {
@@ -88,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'LOGPAL',
+                              taAppName,
                               style: GoogleFonts.montserrat(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -96,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             Text(
-                              '(LOGISTIK & PERALATAN)',
+                              taAppDesc,
                               style: GoogleFonts.montserrat(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -256,11 +257,28 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       )
                     ),
+                    Container(
+                      width: screenWidth,
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 0, color: Colors.white),
+                        color: Colors.white,
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Versi 1.8.10',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      )
+                    )
                   ]
               ),
             ),

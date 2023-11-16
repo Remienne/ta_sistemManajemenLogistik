@@ -1,3 +1,3 @@
 
-const String taAppName = "Logistics";
-const String taAppDesc = "Sistem Manajemen Logistik";
+const String taAppName = "LOGPAL";
+const String taAppDesc = "(LOGISTIK & PERALATAN)";
