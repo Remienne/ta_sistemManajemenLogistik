@@ -6,6 +6,7 @@ import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
 import 'package:the_app/repositories/authentication_repository.dart';
 
+import 'logisitc_help.dart';
 import 'logistic_out.dart';
 import 'logistic_in.dart';
 
@@ -42,7 +43,7 @@ class _LogisticMainState extends State<LogisticMain> {
         toolbarHeight: screenHeight * 0.08,
         elevation: 0,
         title: Container(
-          margin: EdgeInsets.only(left: screenWidth * 0.02, bottom: screenHeight * 0.01),
+          margin: EdgeInsets.only(left: screenWidth * 0.02),
           child: Text(
             "Manajemen \nLogistik",
             style: GoogleFonts.poppins(
@@ -60,35 +61,84 @@ class _LogisticMainState extends State<LogisticMain> {
         ),
         backgroundColor: taPrimaryColor,
         actions: [
-          IconButton(
-            onPressed: () => Alert(
-              context: context,
-              type: AlertType.warning,
-              title: "PERINGATAN!",
-              desc: "Apakah anda yakin ingin logout?",
-              buttons: [
-                DialogButton(
-                  onPressed: () {
-                    AuthenticationRepository().logout();
-                  },
-                  color: taAccentColor,
-                  child: const Text(
-                    "Ya",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
+          PopupMenuButton<String>(
+            color: Colors.white,
+            onSelected: (value) {
+              if (value == 'logout') {
+                Alert(
+                  context: context,
+                  type: AlertType.warning,
+                  title: "PERINGATAN!",
+                  desc: "Apakah anda yakin ingin logout?",
+                  buttons: [
+                    DialogButton(
+                      onPressed: () {
+                        AuthenticationRepository().logout();
+                      },
+                      color: taAccentColor,
+                      child: const Text(
+                        "Ya",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                    DialogButton(
+                      onPressed: () => Get.back(),
+                      color: Colors.white,
+                      child: Text(
+                        "Tidak",
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
+                      ),
+                    ),
+                  ],
+                ).show();
+              }
+              else if (value == 'help') {
+                // Navigate to help page
+                Get.to(const LogisticHelp());
+              }
+              else if (value == 'about') {
+                // Navigate to about page
+                _showOptionsPopup(context);
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.logout, color: Colors.grey.shade700,),
+                      const SizedBox(width: 20,),
+                      const Text('Keluar'),
+                    ],
+                  )
                 ),
-                DialogButton(
-                  onPressed: () => Get.back(),
-                  color: Colors.white,
-                  child: Text(
-                    "Tidak",
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
-                  ),
+                PopupMenuItem<String>(
+                  value: 'help',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.help, color: Colors.grey.shade700,),
+                      const SizedBox(width: 20,),
+                      const Text('Bantuan'),
+                    ],
+                  )
                 ),
-              ],
-            ).show(),
-            icon: const Icon(Icons.logout, color: Colors.white,),
-          )
+                PopupMenuItem<String>(
+                  value: 'about',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info, color: Colors.grey.shade700,),
+                      const SizedBox(width: 20,),
+                      const Text('Tentang'),
+                    ],
+                  )
+                ),
+              ];
+            },
+          ),
         ],
       ),
 
@@ -103,6 +153,166 @@ class _LogisticMainState extends State<LogisticMain> {
           });
         },
       ),
+    );
+  }
+
+  void _showOptionsPopup(BuildContext context) {
+    Get.dialog(
+        WillPopScope(
+          onWillPop: () async => true,
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tentang',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    Icon(Icons.info, size: 15, color: Colors.grey.shade700,),
+                  ],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+                ),
+                content: Wrap(
+                  spacing: 2,
+                  children: [
+                    //appname and spacings
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 10,)
+                          ],
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'LogPal',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Logistik & Peralatan',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            Text(
+                              'Version 1.14',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 10,)
+                          ],
+                        )
+                      ],
+                    ),
+
+                    //2 logos
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Image.asset(taMainLogo, height: 80, width: 80),
+                        Image.asset(taSubLogo, height: 80, width: 80)
+                      ],
+                    ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 10,)
+                          ],
+                        )
+                      ],
+                    ),
+
+                    //copyright
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              '\u00a9 Muhammad Rizqy Mahardika',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center ,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 10,)
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+                actions: [
+                  //hapus semua
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        Get.back();
+                      });
+                    },
+                    child: Text(
+                      'Tutup',
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.normal,
+                        fontSize:14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 5,)
+                ],
+              );
+            },
+          ),
+        )
     );
   }
 

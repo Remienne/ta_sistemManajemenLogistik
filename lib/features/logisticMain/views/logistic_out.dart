@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -290,12 +291,27 @@ class _LogisticOutState extends State<LogisticOut> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: SpeedDial(
+          animatedIcon: AnimatedIcons.menu_close,
           backgroundColor: taAccentColor,
-          onPressed: (){
-            generatePDF();
-          },
-          child: const Icon(Icons.picture_as_pdf, color: Colors.white),
+          foregroundColor: Colors.white,
+          activeBackgroundColor: Colors.white,
+          activeForegroundColor: Colors.black,
+          elevation: 0,
+          overlayOpacity: 0,
+          children: [
+            SpeedDialChild(
+              child: Transform.scale(
+                scale: 1.2,
+                child: const Icon(Icons.picture_as_pdf),
+              ),
+              backgroundColor: taAccentColor,
+              foregroundColor: Colors.white,
+              onTap: () {
+                generatePDF();
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -699,7 +715,7 @@ class _LogisticOutState extends State<LogisticOut> {
                   fontSize: 13,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Akhir',
+                  labelText: 'Akhir (Opsional)',
                 ),
                 focusNode: _endDateFocusNode,
                 onTap: () async {
@@ -741,7 +757,7 @@ class _LogisticOutState extends State<LogisticOut> {
   Future<void> generatePDF() async {
     // Generate PDF and fetch a Logo
     final pdf = pw.Document();
-    final ByteData image = await rootBundle.load(taSplashImage);
+    final ByteData image = await rootBundle.load(taMainLogo);
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF

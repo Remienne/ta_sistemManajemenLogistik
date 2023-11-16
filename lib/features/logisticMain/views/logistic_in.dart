@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
@@ -30,7 +31,6 @@ class LogisticIn extends StatefulWidget {
 class _LogisticInState extends State<LogisticIn> {
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         children: [
@@ -717,7 +717,7 @@ class _LogisticInState extends State<LogisticIn> {
                   fontSize: 13,
                 ),
                 decoration: const InputDecoration(
-                  labelText: 'Akhir',
+                  labelText: 'Akhir (Opsional)',
                 ),
                 focusNode: _endDateFocusNode,
                 onTap: () async {
@@ -762,7 +762,7 @@ class _LogisticInState extends State<LogisticIn> {
 
     // Generate PDF and fetch a Logo
     final pdf = pw.Document();
-    final ByteData image = await rootBundle.load(taSplashImage);
+    final ByteData image = await rootBundle.load(taMainLogo);
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
@@ -1045,9 +1045,9 @@ class _LogisticInState extends State<LogisticIn> {
       );
     }
 
-    // Save the PDF to Documents directory
-    final output = await getApplicationDocumentsDirectory();
-    final file = File("${output.path}/Laporan Logistik Masuk.pdf");
+    // Generate the pdf for previewing
+    final output = await getExternalStorageDirectory();
+    final file = File("${output?.path}/Laporan Logistik Masuk.pdf");
 
     final bytes = await pdf.save(); // Await here to get the actual bytes
 
@@ -1083,7 +1083,13 @@ class _LogisticInState extends State<LogisticIn> {
               ),
               TextButton(
                 onPressed: () {
-                  Get.back();// Close the preview
+                  Get.back();
+                  // Save to 'Downloads' folder
+                  DocumentFileSavePlus().saveMultipleFiles(
+                    dataList: [bytes,],
+                    fileNameList: ["Laporan Logistik Masuk.pdf",],
+                    mimeTypeList: ["application/pdf",],
+                  );
                   // Share the PDF file
                   Share.shareFiles([file.path]);
                 },

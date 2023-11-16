@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         // Your app logo here
                         const Image(
                           alignment: Alignment.center,
-                          image: AssetImage(taSplashImage),
+                          image: AssetImage(taMainLogo),
                           width: 100,
                           height: 100,
                         ),
@@ -124,9 +124,10 @@ class _LoginPageState extends State<LoginPage> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
                                   margin: EdgeInsets.only(
                                       bottom: screenHeight * 0.03,
                                       left: screenWidth * 0.02
@@ -139,9 +140,29 @@ class _LoginPageState extends State<LoginPage> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      bottom: screenHeight * 0.03,
+                                      right: screenWidth * 0.02
+                                  ),
+                                  child: Tooltip(
+                                      textAlign: TextAlign.center,
+                                      waitDuration: const Duration(seconds: 10),
+                                      triggerMode: TooltipTriggerMode.tap,
+                                      message: ''
+                                          '\nApabila terjadi kendala dalam proses login,'
+                                          '\nmohon cek kembali apakah internet'
+                                          '\nsudah terhubung, lalu cek kembali '
+                                          '\ninformasi akun login Anda.'
+                                          '\nUntuk bantuan lebih mohon hubungi admin.'
+                                          '\n',
+                                      child:Icon(Icons.help, color: Colors.grey.shade700,),
+                                  )
                                 )
-                            ),
 
+                              ],
+                            ),
                             // Username input field
                             TextFormField(
                               controller: _email,

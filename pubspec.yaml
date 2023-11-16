@@ -60,6 +60,7 @@ dependencies:
   flutter_shakemywidget: ^1.0.5+1
   flutter_localizations:
     sdk: flutter
+  document_file_save_plus: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 
-const String taSplashImage = "assets/images/bpbd.png";
+const String taMainLogo = "assets/images/bpbd.png";
+const String taSubLogo = "assets/images/kabMalang.png";
 const String noImage = "assets/images/no-photo.png";
 const String inGrey = "assets/images/inGrey.png";
 const String inWhite = "assets/images/inWhite.png";
