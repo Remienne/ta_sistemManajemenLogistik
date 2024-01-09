@@ -255,7 +255,7 @@ class _LogisticInState extends State<LogisticIn> {
                                                           ),
                                                         ),
                                                         Text(
-                                                          formatted,
+                                                          "Exp: $formatted",
                                                           style: GoogleFonts.poppins(
                                                             fontSize:14,
                                                           ),

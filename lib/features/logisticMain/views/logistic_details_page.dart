@@ -290,36 +290,51 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
                 const SizedBox(height: 20),
 
-                if (widget.source == 'logistikIn')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        LogisticsInModel logisticsIn = LogisticsInModel(
-                          id: widget.data['id'],
-                          name: widget.data['Nama Barang'],
-                          source: widget.data['Asal Perolehan'],
-                          storageId: widget.data['Rak'],
-                          units: widget.data['Satuan'],
-                          stock: double.parse(widget.data['Stok'].toString()),
-                          category: widget.data['Kategori'],
-                          dateEnd: widget.data['Tanggal Kadaluarsa'],
-                          insertDate: widget.data['Tanggal Masuk'], // You might want to adjust this field based on your data structure
-                          imgPath: widget.data['Link Gambar'],
-                          officer: widget.data['Nama Petugas'],
+                FutureBuilder(
+                  future: userController.isUserViewer(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      final bool isReadonly = snapshot.data ?? false;
+                      if(snapshot.hasData && !isReadonly){
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              LogisticsInModel logisticsIn = LogisticsInModel(
+                                id: widget.data['id'],
+                                name: widget.data['Nama Barang'],
+                                source: widget.data['Asal Perolehan'],
+                                storageId: widget.data['Rak'],
+                                units: widget.data['Satuan'],
+                                stock: double.parse(widget.data['Stok'].toString()),
+                                category: widget.data['Kategori'],
+                                dateEnd: widget.data['Tanggal Kadaluarsa'],
+                                insertDate: widget.data['Tanggal Masuk'], // You might want to adjust this field based on your data structure
+                                imgPath: widget.data['Link Gambar'],
+                                officer: widget.data['Nama Petugas'],
+                              );
+                              showDistributionPopup(context, logisticsIn);
+                            },
+                            style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
+                                backgroundColor: taAccentColor,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                )
+                            ),
+                            child: Text('Lanjutkan untuk barang keluar', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
+                          ),
                         );
-                        showDistributionPopup(context, logisticsIn);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
-                          backgroundColor: taAccentColor,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          )
-                      ),
-                      child: Text('Lanjutkan untuk barang keluar', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
-                    ),
-                  )
+                      }
+                      else{
+                        return Container();
+                      }
+                    }
+                    else {
+                      return const SizedBox.shrink(); // Return an empty widget while waiting for the future to complete
+                    }
+                  },
+                )
               ],
             ),
           ),
