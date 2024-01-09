@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -30,6 +31,8 @@ class _LogisticMainState extends State<LogisticMain> {
   @override
   void initState() {
     super.initState();
+    DefaultCacheManager manager = DefaultCacheManager();
+    manager.emptyCache(); //clears all data in cache.
   }
 
   @override
@@ -215,7 +218,7 @@ class _LogisticMainState extends State<LogisticMain> {
                               ),
                             ),
                             Text(
-                              'Versi 1.8.11',
+                              'Versi 1.9',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -242,8 +245,8 @@ class _LogisticMainState extends State<LogisticMain> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Image.asset(taMainLogo, height: 80, width: 80),
-                        Image.asset(taSubLogo, height: 80, width: 80)
+                        Image.asset(taSubLogo, height: 80, width: 80),
+                        Image.asset(taMainLogo, height: 80, width: 80)
                       ],
                     ),
                     const Row(

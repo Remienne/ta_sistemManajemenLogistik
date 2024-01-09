@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -8,25 +9,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:the_app/constants/colors.dart';
+import 'package:the_app/features/logisticMain/controllers/logistic_edit_controller.dart';
 import 'package:the_app/features/logisticMain/controllers/user_controller.dart';
 import 'package:the_app/features/logisticMain/views/logistic_main.dart';
 import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
-import 'package:the_app/features/logisticMain/controllers/logistic_input_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path/path.dart';
 import 'package:the_app/repositories/users_repository/user_model.dart';
 
-class LogisticInput extends StatefulWidget {
-  const LogisticInput({super.key});
+class LogisticEdit extends StatefulWidget {
+  final Map<String, dynamic> data;
+  const LogisticEdit({super.key, required this.data});
 
   @override
-  State<LogisticInput> createState() => _LogisticInputState();
+  State<LogisticEdit> createState() => _LogisticEditState();
 }
 
-class _LogisticInputState extends State<LogisticInput> {
+class _LogisticEditState extends State<LogisticEdit> {
   final _formKey = GlobalKey<FormState>();
-  final logisticController = Get.put(LogisticInputController());
+  final editController = Get.put(LogisticEditController());
   final userController = Get.put(UserController());
 
   // ignore: prefer_typing_uninitialized_variables
@@ -82,7 +84,8 @@ class _LogisticInputState extends State<LogisticInput> {
         setState(() {
           isImageUploading = false;
         });
-      } else {
+      }
+      else {
         debugPrint('No image uploaded.');
       }
     });
@@ -186,6 +189,16 @@ class _LogisticInputState extends State<LogisticInput> {
   @override
   void initState() {
     super.initState();
+    DateTime expirationDate = (widget.data['Tanggal Kadaluarsa']).toDate();
+    String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
+    editController.imageUrl.text = widget.data['Link Gambar'];
+    editController.name.text = widget.data['Nama Barang'];
+    editController.source.text = widget.data['Asal Perolehan'];
+    editController.stock.text = widget.data['Stok'].toInt().toString();
+    units = widget.data['Satuan'];
+    editController.storageID.text = widget.data['Rak'];
+    category = widget.data['Kategori'];
+    editController.dateEnd.text = formatted;
   }
 
   @override
@@ -203,7 +216,7 @@ class _LogisticInputState extends State<LogisticInput> {
             context: context,
             type: AlertType.warning,
             title: "PERINGATAN!",
-            desc: "Apakah anda akan batal menginputkan item?",
+            desc: "Apakah anda akan batal mengubah item?",
             buttons: [
               DialogButton(
                 onPressed: () {
@@ -238,7 +251,7 @@ class _LogisticInputState extends State<LogisticInput> {
             title: Container(
               margin: EdgeInsets.only(left: screenWidth * 0.02, bottom: screenHeight * 0.01),
               child: Text(
-                "Input \nBarang",
+                "Ubah Data \nBarang",
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   height: 1.1,
@@ -280,27 +293,23 @@ class _LogisticInputState extends State<LogisticInput> {
                                     child:  _image != null
                                     //image uploaded
                                         ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(50),
-                                      child: Image.file(
-                                        _image!,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.fitHeight,
-                                      ),
-                                    )
-                                    //placeholder
-                                        : Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.white70,
-                                          borderRadius: BorderRadius.circular(50)),
-                                      width: 100,
-                                      height: 100,
-                                      child: const Icon(
-                                        Icons.add_photo_alternate_rounded,
-                                        color: Colors.grey,
-                                        size: 30,
-                                      ),
-                                    ),
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: Image.file(
+                                            _image!,
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.fitHeight,
+                                          ),
+                                        )
+                                        : ClipRRect(
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: CachedNetworkImage(
+                                            imageUrl: editController.imageUrl.text,
+                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                            fit: BoxFit.fitHeight,
+                                          ),
+                                        )
                                   ),
                                 ],
                               ),
@@ -313,7 +322,7 @@ class _LogisticInputState extends State<LogisticInput> {
                         //input nama item
                         TextFormField(
                           autovalidateMode: AutovalidateMode.onUserInteraction,
-                          controller: logisticController.name,
+                          controller: editController.name,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                           ),
@@ -336,7 +345,7 @@ class _LogisticInputState extends State<LogisticInput> {
                         //input asal perolehan
                         TextFormField(
                           autovalidateMode: AutovalidateMode.onUserInteraction,
-                          controller: logisticController.source,
+                          controller: editController.source,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                           ),
@@ -369,7 +378,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                     }
                                     return null;
                                   },
-                                  controller: logisticController.stock,
+                                  controller: editController.stock,
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                   ),
@@ -407,12 +416,6 @@ class _LogisticInputState extends State<LogisticInput> {
                                   }
                                   return DropdownButtonFormField(
                                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return validatorNull;
-                                      }
-                                      return null;
-                                    },
                                     decoration: InputDecoration(
                                         contentPadding: const EdgeInsets.only(top: 20, bottom: 20, left: 10, right: 10),
                                         border: OutlineInputBorder(
@@ -421,6 +424,12 @@ class _LogisticInputState extends State<LogisticInput> {
                                         labelText: "Satuan",
                                         labelStyle: GoogleFonts.poppins(fontSize: 14)
                                     ),
+                                    validator: (value) {
+                                      if (value == null) {
+                                        return validatorNull;
+                                      }
+                                      return null;
+                                    },
                                     isExpanded: false,
                                     value: units,
                                     items: snapshot.data?.docs.map((value) {
@@ -429,8 +438,8 @@ class _LogisticInputState extends State<LogisticInput> {
                                         child: Text('${value.get('nama')}'),
                                       );
                                     }).toList(),
-                                    onChanged: (value) {
-                                      units = value;
+                                    onChanged: (unitVal) {
+                                      units = unitVal;
                                     },
                                   );
                                 },
@@ -447,7 +456,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                   }
                                   return null;
                                 },
-                                controller: logisticController.storageID,
+                                controller: editController.storageID,
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                 ),
@@ -521,7 +530,7 @@ class _LogisticInputState extends State<LogisticInput> {
                         //datePicker
                         TextFormField(
                             autovalidateMode: AutovalidateMode.onUserInteraction,
-                            controller: logisticController.dateEnd,
+                            controller: editController.dateEnd,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                             ),
@@ -547,7 +556,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               if (picked != null && picked != selectedDate) {
                                 setState(() {
                                   selectedDate = picked;
-                                  logisticController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
+                                  editController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
                                 });
                               }
                             }
@@ -565,33 +574,44 @@ class _LogisticInputState extends State<LogisticInput> {
                                 return SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: () {
+                                    onPressed: isImageUploading
+                                        ? null
+                                        : () {
                                       if(_formKey.currentState!.validate()){
-                                        if (_image == null) {
-                                          // Show an error message or handle the case where an image is mandatory.
-                                          Get.snackbar(
-                                              "PERINGATAN!",
-                                              "Gambar tidak boleh kosong. Unggah gambar untuk melanjutkan!",
-                                              snackPosition: SnackPosition.BOTTOM,
-                                              backgroundColor: Colors.redAccent,
-                                              colorText: Colors.white
-                                          );
-                                        } else {
-                                          // Proceed with form submission logic
+                                        if(_image == null){
                                           setState(() {
                                             final logistics = LogisticsInModel(
-                                              name: logisticController.name.text.trim(),
-                                              source: logisticController.source.text.trim(),
-                                              storageId: logisticController.storageID.text.trim(),
+                                              name: editController.name.text.trim(),
+                                              source: editController.source.text.trim(),
+                                              storageId: editController.storageID.text.trim(),
                                               units: units,
-                                              stock: double.parse(logisticController.stock.text.trim()),
+                                              stock: double.parse(editController.stock.text.trim()),
+                                              category: category,
+                                              dateEnd: Timestamp.fromDate(selectedDate),
+                                              insertDate: Timestamp.fromDate(dateNow),
+                                              imgPath: editController.imageUrl.text,
+                                              officer: userData.name,
+                                            );
+                                            editController.editItem(logistics, widget.data['id']);
+                                            Get.offAll(() => const LogisticMain());
+                                          });
+                                          _formKey.currentState?.reset();
+                                        }
+                                        else{
+                                          setState(() {
+                                            final logistics = LogisticsInModel(
+                                              name: editController.name.text.trim(),
+                                              source: editController.source.text.trim(),
+                                              storageId: editController.storageID.text.trim(),
+                                              units: units,
+                                              stock: double.parse(editController.stock.text.trim()),
                                               category: category,
                                               dateEnd: Timestamp.fromDate(selectedDate),
                                               insertDate: Timestamp.fromDate(dateNow),
                                               imgPath: _urlItemImage?? '',
                                               officer: userData.name,
                                             );
-                                            LogisticInputController.instance.insertItem(logistics);
+                                            editController.editItem(logistics, widget.data['id']);
                                             Get.offAll(() => const LogisticMain());
                                           });
                                           _formKey.currentState?.reset();
@@ -600,12 +620,12 @@ class _LogisticInputState extends State<LogisticInput> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
-                                        backgroundColor: taAccentColor,
+                                        backgroundColor: isImageUploading ? Colors.grey : taAccentColor,
                                         shape: const RoundedRectangleBorder(
                                           borderRadius: BorderRadius.all(Radius.circular(15)),
                                         )
                                     ),
-                                    child: Text('Tambah Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
+                                    child: Text('Ubah Data', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
                                   ),
                                 );
                               }else if(snapshot.hasError){
@@ -613,8 +633,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               }else{
                                 return const Center(child: Text("Something went wrong!"));
                               }
-                            }
-                            else{
+                            }else{
                               return const Center(child: CircularProgressIndicator());
                             }
                           },
@@ -631,7 +650,7 @@ class _LogisticInputState extends State<LogisticInput> {
                                 context: context,
                                 type: AlertType.warning,
                                 title: "PERINGATAN!",
-                                desc: "Apakah anda akan batal menginputkan item?",
+                                desc: "Apakah anda akan batal mengubah item?",
                                 buttons: [
                                   DialogButton(
                                     onPressed: () {

@@ -83,4 +83,55 @@ class LogisticDb extends GetxController{
       debugPrint('Error distributing item: $e');
     }
   }
+
+  // Edit function
+  Future<void> editLogistic(LogisticsInModel logistics, String id) async {
+    try {
+      // Update the document in logistikMasuk
+      await _dbLogistikMasuk.doc(id).update(logistics.toJson());
+
+      Get.snackbar(
+        "Sukses!",
+        "Item berhasil diubah.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      // Log the error
+      debugPrint('Error editing item: $e');
+
+      Get.snackbar(
+        "Galat!",
+        "Terjadi kesalahan, mohon ulangi kembali.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+
+  Future<void> deleteItem(String id) async {
+    try {
+      // Delete the document from logistikMasuk
+      await _dbLogistikMasuk.doc(id).delete();
+      Get.snackbar(
+        "Sukses!",
+        "Item berhasil dihapus.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (error) {
+      Get.snackbar(
+        "Error",
+        "Gagal menghapus item. Silakan coba lagi!",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      debugPrint("Error deleting item: $error");
+    }
+  }
 }

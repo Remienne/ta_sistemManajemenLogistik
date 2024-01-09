@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/features/logisticMain/controllers/logistic_detail_controller.dart';
+import 'package:the_app/features/logisticMain/controllers/user_controller.dart';
+import 'package:the_app/features/logisticMain/views/logisitc_edit.dart';
 import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
-import 'package:the_app/repositories/logistic_repository/logisticsOut_model.dart';
 import 'logistic_main.dart';
 
 class LogisticDetailsPage extends StatefulWidget {
@@ -21,6 +23,7 @@ class LogisticDetailsPage extends StatefulWidget {
 class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   final logisticDetailController = Get.put(LogisticDetailController());
+  final userController = Get.put(UserController());
   String validatorNull = 'Kolom tidak boleh kosong!';
 
   @override
@@ -49,24 +52,89 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
     String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
 
     if (widget.source == 'logistikIn') {
-      // Assuming logisticsInModel is defined in 'path_to_logistic_in_model.dart'
-      LogisticsInModel logisticsIn = LogisticsInModel(
-        id: widget.data['id'],
-        name: widget.data['Nama Barang'],
-        source: widget.data['Asal Perolehan'],
-        storageId: widget.data['Rak'],
-        units: widget.data['Satuan'],
-        stock: double.parse(widget.data['Stok'].toString()),
-        category: widget.data['Kategori'],
-        dateEnd: widget.data['Tanggal Kadaluarsa'],
-        insertDate: widget.data['Tanggal Masuk'],
-        imgPath: widget.data['Link Gambar'],
-        officer: widget.data['Nama Petugas'],
-      );
       return WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
           appBar: AppBar(
+            actions: [
+              Builder(
+                  builder: (context){
+                    return FutureBuilder<bool>(
+                      future: userController.isUserAdmin(),
+                      builder: (context, snapshot){
+                        if (snapshot.connectionState == ConnectionState.done){
+                          if(snapshot.hasData && snapshot.data!){
+                            return PopupMenuButton<String>(
+                              color: Colors.white,
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  // Call the function to edit the logistics item
+                                  _editPage();
+                                } else if (value == 'delete') {
+                                  // Call the function to delete the logistics item
+                                  Alert(
+                                    context: context,
+                                    type: AlertType.warning,
+                                    title: "PERINGATAN!",
+                                    desc: "Apakah anda akan batal mengubah item?",
+                                    buttons: [
+                                      DialogButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            logisticDetailController.deleteItem(
+                                              widget.data['id'],
+                                            );
+                                            Get.offAll(() => const LogisticMain());
+                                          });
+                                        },
+                                        color: taAccentColor,
+                                        child: const Text(
+                                          "Ya",
+                                          style: TextStyle(color: Colors.white, fontSize: 20),
+                                        ),
+                                      ),
+                                      DialogButton(
+                                        onPressed: () => Get.back(),
+                                        color: Colors.white,
+                                        child: Text(
+                                          "Tidak",
+                                          style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
+                                        ),
+                                      ),
+                                    ],
+                                  ).show();
+                                }
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return ['edit', 'delete'].map((String choice) {
+                                  return PopupMenuItem<String>(
+                                    value: choice,
+                                    child: Text(choice == 'edit' ? 'Ubah' : 'Hapus'),
+                                  );
+                                }).toList();
+                              },
+                            );
+                          }
+                          else{
+                            return Container();
+                          }
+                        }
+                        else{
+                          return const CircularProgressIndicator();
+                        }
+                      }
+                    );
+                  }
+              )
+            ],
+            title: Text(
+              "Detail Barang",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             toolbarHeight: screenHeight * 0.08,
             elevation: 0,
             leading: GestureDetector(
@@ -76,14 +144,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
               child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white, // Customize the color
-              ),
-            ),
-            title: Text(
-              "Detail Barang",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
             shape: const RoundedRectangleBorder(
@@ -105,7 +165,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     width: double.infinity,
                     height: 200,
                     child: Hero(
-                      tag: widget.data['Link Gambar'],
+                      tag: widget.data['id'],
                       child: CachedNetworkImage(
                         imageUrl: widget.data['Link Gambar'],
                         progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
@@ -153,9 +213,17 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                       color: Colors.grey
                   ),
                 ),
-                Text(
-                  widget.data['Stok'].toInt().toString(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                Row(
+                  children: [
+                    Text(
+                        widget.data['Stok'].toInt().toString(),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                        widget.data['Satuan'],
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)
+                    )
+                  ],
                 ),
                 const SizedBox(height: 20),
 
@@ -202,7 +270,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                   ),
 
                 Text(
-                    logisticsIn.source,
+                    widget.data['Asal Perolehan'],
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
 
@@ -259,21 +327,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
       );
     }
     if (widget.source == 'logistikOut') {
-      // Assuming logisticsInModel is defined in 'path_to_logistic_in_model.dart'
-      LogisticsOutModel logisticsOut = LogisticsOutModel(
-        id: widget.data['id'],
-        name: widget.data['Nama Barang'],
-        destination: widget.data['Tujuan Pengiriman'],
-        storageId: widget.data['Rak'],
-        units: widget.data['Satuan'],
-        stock: double.parse(widget.data['Stok'].toString()),
-        remainingStock: double.parse(widget.data['Sisa Stok'].toString()),
-        category: widget.data['Kategori'],
-        dateEnd: widget.data['Tanggal Kadaluarsa'],
-        distributeDate: widget.data['Tanggal Keluar'],
-        imgPath: widget.data['Link Gambar'],
-        officer: widget.data['Nama Petugas'],
-      );
       return WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
@@ -303,6 +356,77 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
               ),
             ),
             backgroundColor: taPrimaryColor,
+            actions: [
+              Builder(
+                  builder: (context){
+                    return FutureBuilder<bool>(
+                        future: userController.isUserAdmin(),
+                        builder: (context, snapshot){
+                          if (snapshot.connectionState == ConnectionState.done){
+                            if(snapshot.hasData && snapshot.data!){
+                              return PopupMenuButton<String>(
+                                color: Colors.white,
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    // Call the function to edit the logistics item
+                                    _editPage();
+                                  } else if (value == 'delete') {
+                                    // Call the function to delete the logistics item
+                                    Alert(
+                                      context: context,
+                                      type: AlertType.warning,
+                                      title: "PERINGATAN!",
+                                      desc: "Apakah anda akan batal mengubah item?",
+                                      buttons: [
+                                        DialogButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              logisticDetailController.deleteItem(
+                                                widget.data['id'],
+                                              );
+                                              Get.offAll(() => const LogisticMain());
+                                            });
+                                          },
+                                          color: taAccentColor,
+                                          child: const Text(
+                                            "Ya",
+                                            style: TextStyle(color: Colors.white, fontSize: 20),
+                                          ),
+                                        ),
+                                        DialogButton(
+                                          onPressed: () => Get.back(),
+                                          color: Colors.white,
+                                          child: Text(
+                                            "Tidak",
+                                            style: TextStyle(color: Colors.grey.shade700, fontSize: 20),
+                                          ),
+                                        ),
+                                      ],
+                                    ).show();
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) {
+                                  return ['edit', 'delete'].map((String choice) {
+                                    return PopupMenuItem<String>(
+                                      value: choice,
+                                      child: Text(choice == 'edit' ? 'Ubah' : 'Hapus'),
+                                    );
+                                  }).toList();
+                                },
+                              );
+                            }
+                            else{
+                              return Container();
+                            }
+                          }
+                          else{
+                            return const CircularProgressIndicator();
+                          }
+                        }
+                    );
+                  }
+              )
+            ],
           ),
           backgroundColor: taBackgroundColor,
           body: SingleChildScrollView(
@@ -316,7 +440,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     width: double.infinity,
                     height: 200,
                     child: Hero(
-                      tag: widget.data['Link Gambar'],
+                      tag: widget.data['id'],
                       child: CachedNetworkImage(
                         imageUrl: widget.data['Link Gambar'],
                         progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
@@ -379,7 +503,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                   ),
                 ),
                 Text(
-                  logisticsOut.remainingStock.toInt().toString(),
+                  widget.data['Sisa Stok'].toInt().toString(),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 20),
@@ -426,7 +550,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     ),
                   ),
                 Text(
-                    logisticsOut.destination,
+                    widget.data['Tujuan Pengiriman'],
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
 
@@ -445,37 +569,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 20),
-
-                if (widget.source == 'logistikIn')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        LogisticsInModel logisticsIn = LogisticsInModel(
-                          id: widget.data['id'],
-                          name: widget.data['Nama Barang'],
-                          source: widget.data['Asal Perolehan'],
-                          storageId: widget.data['Rak'],
-                          units: widget.data['Satuan'],
-                          stock: double.parse(widget.data['Stok'].toString()),
-                          category: widget.data['Kategori'],
-                          dateEnd: widget.data['Tanggal Kadaluarsa'],
-                          insertDate: widget.data['Tanggal Masuk'], // You might want to adjust this field based on your data structure
-                          imgPath: widget.data['Link Gambar'],
-                          officer: widget.data['Nama Petugas'],
-                        );
-                        showDistributionPopup(context, logisticsIn);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20),
-                          backgroundColor: taAccentColor,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          )
-                      ),
-                      child: Text('Distribusikan Item', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white)),
-                    ),
-                  )
               ],
             ),
           ),
@@ -483,6 +576,10 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
       );
     }
     return const Text('Null');
+  }
+
+  Future<void> _editPage() async {
+    await Get.offAll(() => LogisticEdit(data: widget.data));
   }
 
   Future<bool> _onBackPressed() {

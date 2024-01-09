@@ -161,7 +161,7 @@ class _LogisticOutState extends State<LogisticOut> {
                                                         borderRadius: BorderRadius.circular(10),
                                                       ),
                                                       child: Hero(
-                                                          tag: _resultList[index]['Link Gambar'],
+                                                          tag: _resultList[index]['id'],
                                                           child: CachedNetworkImage(
                                                             imageUrl: _resultList[index]['Link Gambar'],
                                                             progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
@@ -237,7 +237,7 @@ class _LogisticOutState extends State<LogisticOut> {
                                                         borderRadius: BorderRadius.circular(10),
                                                       ),
                                                       child: Hero(
-                                                          tag: _resultList[index]['Link Gambar'],
+                                                          tag: _resultList[index]['id'],
                                                           child: CachedNetworkImage(
                                                             imageUrl: _resultList[index]['Link Gambar'],
                                                             progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),

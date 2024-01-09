@@ -17,4 +17,14 @@ class UserController extends GetxController{
       Get.snackbar("Error", "Login to continue");
     }
   }
+
+  Future<bool> isUserAdmin() async {
+    final user = _authDb.firebaseUser.value;
+    if (user != null) {
+      final userData = await _userDb.getUserDetails(user.email!);
+      return userData.priv == 'admin';
+    } else {
+      return false;
+    }
+  }
 }

@@ -19,4 +19,9 @@ class LogisticDetailController extends GetxController{
       ) async {
     await logisticDb.distributeItem(logistics, id, quantity, destination);
   }
+
+  Future<void> deleteItem(String id) async {
+    await logisticDb.deleteItem(id);
+  }
+
 }
