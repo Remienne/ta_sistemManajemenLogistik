@@ -76,7 +76,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                     context: context,
                                     type: AlertType.warning,
                                     title: "PERINGATAN!",
-                                    desc: "Apakah anda akan batal mengubah item?",
+                                    desc: "Apakah anda yakin ingin menghapus item?",
                                     buttons: [
                                       DialogButton(
                                         onPressed: () {
@@ -120,7 +120,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                           }
                         }
                         else{
-                          return const CircularProgressIndicator();
+                          return Container();
                         }
                       }
                     );
@@ -420,7 +420,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                             }
                           }
                           else{
-                            return const CircularProgressIndicator();
+                            return Container();
                           }
                         }
                     );

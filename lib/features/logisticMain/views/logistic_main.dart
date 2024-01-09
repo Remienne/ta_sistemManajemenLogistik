@@ -72,7 +72,7 @@ class _LogisticMainState extends State<LogisticMain> {
                   context: context,
                   type: AlertType.warning,
                   title: "PERINGATAN!",
-                  desc: "Apakah anda yakin ingin logout?",
+                  desc: "Apakah anda yakin ingin keluar?",
                   buttons: [
                     DialogButton(
                       onPressed: () {
@@ -218,7 +218,7 @@ class _LogisticMainState extends State<LogisticMain> {
                               ),
                             ),
                             Text(
-                              'Versi 1.9',
+                              'Versi 1.9.1',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey,

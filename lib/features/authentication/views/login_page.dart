@@ -134,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                                       left: screenWidth * 0.02
                                   ),
                                   child: Text(
-                                    'Login',
+                                    'Selamat Datang',
                                     style: GoogleFonts.poppins(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -155,8 +155,9 @@ class _LoginPageState extends State<LoginPage> {
                                           '\nApabila terjadi kendala dalam proses login,'
                                           '\nmohon cek kembali apakah internet'
                                           '\nsudah terhubung, lalu cek kembali '
-                                          '\ninformasi akun login Anda.'
-                                          '\nUntuk bantuan lebih mohon hubungi admin.'
+                                          '\ninformasi akun Anda.'
+                                          '\nUntuk bantuan lebih '
+                                          '\nmohon hubungi admin.'
                                           '\n',
                                       child:Icon(Icons.help, color: Colors.grey.shade700,),
                                   )
@@ -270,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: Center(
                         child: Text(
-                          'Versi 1.9',
+                          'Versi 1.9.1',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey,

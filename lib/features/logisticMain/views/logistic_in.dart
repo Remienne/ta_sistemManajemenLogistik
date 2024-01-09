@@ -17,6 +17,7 @@ import 'package:pdfx/pdfx.dart' as pdfx_show;
 import 'package:share/share.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
+import 'package:the_app/features/logisticMain/controllers/user_controller.dart';
 import 'package:the_app/features/logisticMain/views/logistic_details_page.dart';
 import 'logistic_input.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -29,6 +30,8 @@ class LogisticIn extends StatefulWidget {
 }
 
 class _LogisticInState extends State<LogisticIn> {
+  final userController = Get.put(UserController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -276,39 +279,51 @@ class _LogisticInState extends State<LogisticIn> {
           ),
         ],
       ),
-      floatingActionButton: SpeedDial(
-        animatedIcon: AnimatedIcons.menu_close,
-        backgroundColor: taAccentColor,
-        foregroundColor: Colors.white,
-        activeBackgroundColor: Colors.white,
-        activeForegroundColor: Colors.black,
-        elevation: 0,
-        overlayOpacity: 0,
-        children: [
-          SpeedDialChild(
-            child: Transform.scale(
-              scale: 1.2,
-              child: const Icon(Icons.add),
-            ),
-            backgroundColor: taAccentColor,
-            foregroundColor: Colors.white,
-            onTap: () {
-              Get.off(() => const LogisticInput());
-            },
-          ),
-          SpeedDialChild(
-            child: Transform.scale(
-              scale: 1.2,
-              child: const Icon(Icons.picture_as_pdf),
-            ),
-            backgroundColor: taAccentColor,
-            foregroundColor: Colors.white,
-            onTap: () {
-              generatePDF();
-            },
-          ),
-        ],
-      ),
+      floatingActionButton: FutureBuilder(
+        future: userController.isUserViewer(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            final bool isReadonly = snapshot.data ?? false;
+            return SpeedDial(
+              animatedIcon: AnimatedIcons.menu_close,
+              backgroundColor: taAccentColor,
+              foregroundColor: Colors.white,
+              activeBackgroundColor: Colors.white,
+              activeForegroundColor: Colors.black,
+              elevation: 0,
+              overlayOpacity: 0,
+              children: [
+                if(!isReadonly)
+                  SpeedDialChild(
+                    child: Transform.scale(
+                      scale: 1.2,
+                      child: const Icon(Icons.add),
+                    ),
+                    backgroundColor: taAccentColor,
+                    foregroundColor: Colors.white,
+                    onTap: () {
+                      Get.off(() => const LogisticInput());
+                    },
+                  ),
+
+                SpeedDialChild(
+                  child: Transform.scale(
+                    scale: 1.2,
+                    child: const Icon(Icons.picture_as_pdf),
+                  ),
+                  backgroundColor: taAccentColor,
+                  foregroundColor: Colors.white,
+                  onTap: () {
+                    generatePDF();
+                  },
+                ),
+              ],
+            );
+          } else {
+            return const SizedBox.shrink(); // Return an empty widget while waiting for the future to complete
+          }
+        },
+      )
     );
   }
 

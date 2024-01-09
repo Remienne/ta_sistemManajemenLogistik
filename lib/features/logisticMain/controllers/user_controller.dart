@@ -27,4 +27,14 @@ class UserController extends GetxController{
       return false;
     }
   }
+
+  Future<bool> isUserViewer() async {
+    final user = _authDb.firebaseUser.value;
+    if (user != null) {
+      final userData = await _userDb.getUserDetails(user.email!);
+      return userData.priv == 'readonly';
+    } else {
+      return false;
+    }
+  }
 }
