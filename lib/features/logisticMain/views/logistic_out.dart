@@ -268,7 +268,7 @@ class _LogisticOutState extends State<LogisticOut> {
                                                       ),
                                                     ),
                                                     Text(
-                                                      formatted,
+                                                      "Exp: $formatted",
                                                       style: GoogleFonts.poppins(
                                                         fontSize:14,
                                                       ),
