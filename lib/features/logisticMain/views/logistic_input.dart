@@ -45,7 +45,7 @@ class _LogisticInputState extends State<LogisticInput> {
 
     final pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 10,
+        imageQuality: 30,
         maxHeight: 800,
         maxWidth: 800
     );
@@ -58,14 +58,6 @@ class _LogisticInputState extends State<LogisticInput> {
         }
 
         _image = File(pickedFile.path);
-
-        Get.snackbar(
-            "Sedang dalam proses unggah",
-            "Mohon tunggu sebentar...",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: taWarningBackgroundColor,
-            colorText: Colors.white
-        );
 
         setState(() {
           isImageUploading = true;
@@ -97,7 +89,7 @@ class _LogisticInputState extends State<LogisticInput> {
 
     final pickedFile = await _imagePicker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 10,
+        imageQuality: 30,
         maxHeight: 800,
         maxWidth: 800
     );
@@ -108,17 +100,7 @@ class _LogisticInputState extends State<LogisticInput> {
         for (String imageUrl in _previousImageUrls) {
           deletePreviousImage(imageUrl);
         }
-
         _image = File(pickedFile.path);
-
-        Get.snackbar(
-            "Sedang dalam proses unggah",
-            "Mohon tunggu sebentar...",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: taWarningBackgroundColor,
-            colorText: Colors.white
-        );
-
         setState(() {
           isImageUploading = true;
         });
@@ -558,7 +540,7 @@ class _LogisticInputState extends State<LogisticInput> {
                               if (picked != null && picked != selectedDate) {
                                 setState(() {
                                   selectedDate = picked;
-                                  logisticController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
+                                  logisticController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(selectedDate);
                                 });
                               }
                             }

@@ -47,7 +47,7 @@ class _LogisticEditState extends State<LogisticEdit> {
 
     final pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 10,
+        imageQuality: 30,
         maxHeight: 800,
         maxWidth: 800
     );
@@ -58,17 +58,7 @@ class _LogisticEditState extends State<LogisticEdit> {
         for (String imageUrl in _previousImageUrls) {
           deletePreviousImage(imageUrl);
         }
-
         _image = File(pickedFile.path);
-
-        Get.snackbar(
-            "Sedang dalam proses unggah",
-            "Mohon tunggu sebentar...",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: taWarningBackgroundColor,
-            colorText: Colors.white
-        );
-
         setState(() {
           isImageUploading = true;
         });
@@ -100,7 +90,7 @@ class _LogisticEditState extends State<LogisticEdit> {
 
     final pickedFile = await _imagePicker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 10,
+        imageQuality: 30,
         maxHeight: 800,
         maxWidth: 800
     );
@@ -111,17 +101,7 @@ class _LogisticEditState extends State<LogisticEdit> {
         for (String imageUrl in _previousImageUrls) {
           deletePreviousImage(imageUrl);
         }
-
         _image = File(pickedFile.path);
-
-        Get.snackbar(
-            "Sedang dalam proses unggah",
-            "Mohon tunggu sebentar...",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: taWarningBackgroundColor,
-            colorText: Colors.white
-        );
-
         setState(() {
           isImageUploading = true;
         });
@@ -216,7 +196,7 @@ class _LogisticEditState extends State<LogisticEdit> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    return WillPopScope(
+    return WillPopScope (
       onWillPop: () async {
         // Your custom back press logic goes here
         bool shouldPop = false; // Set to false if you want to prevent the back press
@@ -560,13 +540,13 @@ class _LogisticEditState extends State<LogisticEdit> {
                             onTap: () async {
                               final DateTime? picked = await showDatePicker(
                                   context: context,
-                                  initialDate: selectedDate,
+                                  initialDate: widget.data['Tanggal Kadaluarsa'].toDate(),
                                   firstDate: DateTime(2001),
                                   lastDate: DateTime(2101));
-                              if (picked != null && picked != selectedDate) {
+                              if (picked != null) {
                                 setState(() {
                                   selectedDate = picked;
-                                  editController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy').format(selectedDate);
+                                  editController.dateEnd.text = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(selectedDate);
                                 });
                               }
                             }
@@ -597,7 +577,9 @@ class _LogisticEditState extends State<LogisticEdit> {
                                               units: units,
                                               stock: double.parse(editController.stock.text.trim()),
                                               category: category,
-                                              dateEnd: Timestamp.fromDate(selectedDate),
+                                              dateEnd: selectedDate == DateTime.now()
+                                                  ? Timestamp.fromDate(selectedDate)
+                                                  : widget.data['Tanggal Kadaluarsa'],
                                               insertDate: Timestamp.fromDate(dateNow),
                                               imgPath: editController.imageUrl.text,
                                               officer: userData.name,
@@ -616,7 +598,9 @@ class _LogisticEditState extends State<LogisticEdit> {
                                               units: units,
                                               stock: double.parse(editController.stock.text.trim()),
                                               category: category,
-                                              dateEnd: Timestamp.fromDate(selectedDate),
+                                              dateEnd: selectedDate == DateTime.now()
+                                                  ? Timestamp.fromDate(selectedDate)
+                                                  : widget.data['Tanggal Kadaluarsa'],
                                               insertDate: Timestamp.fromDate(dateNow),
                                               imgPath: _urlItemImage?? '',
                                               officer: userData.name,
