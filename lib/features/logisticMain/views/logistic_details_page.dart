@@ -83,6 +83,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                           setState(() {
                                             logisticDetailController.deleteItem(
                                               widget.data['id'],
+                                              widget.data['Link Gambar'],
                                             );
                                             Get.offAll(() => const LogisticMain());
                                           });
@@ -398,6 +399,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                             setState(() {
                                               logisticDetailController.deleteItem(
                                                 widget.data['id'],
+                                                widget.data['Link Gambar']
                                               );
                                               Get.offAll(() => const LogisticMain());
                                             });

@@ -43,7 +43,12 @@ class _LogisticInputState extends State<LogisticInput> {
 
   Future imgFromGallery() async {
 
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 10,
+        maxHeight: 800,
+        maxWidth: 800
+    );
 
     setState(() {
       if (pickedFile != null) {
@@ -90,7 +95,12 @@ class _LogisticInputState extends State<LogisticInput> {
 
   Future imgFromCamera() async {
 
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
+    final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 10,
+        maxHeight: 800,
+        maxWidth: 800
+    );
 
     setState(() {
       if (pickedFile != null) {
@@ -128,7 +138,8 @@ class _LogisticInputState extends State<LogisticInput> {
         setState(() {
           isImageUploading = false;
         });
-      } else {
+      }
+      else {
         debugPrint('No image uploaded.');
       }
     });
