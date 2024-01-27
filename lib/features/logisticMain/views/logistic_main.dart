@@ -218,7 +218,7 @@ class _LogisticMainState extends State<LogisticMain> {
                               ),
                             ),
                             Text(
-                              'Versi 1.9.2',
+                              'Versi 1.10',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey,

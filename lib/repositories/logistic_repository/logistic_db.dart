@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:the_app/repositories/logistic_repository/logisticsIn_model.dart';
@@ -112,10 +113,11 @@ class LogisticDb extends GetxController{
   }
 
 
-  Future<void> deleteItem(String id) async {
+  Future<void> deleteItem(String id, String imageUrl) async {
     try {
       // Delete the document from logistikMasuk
       await _dbLogistikMasuk.doc(id).delete();
+      await FirebaseStorage.instance.refFromURL(imageUrl).delete();
       Get.snackbar(
         "Sukses!",
         "Item berhasil dihapus.",

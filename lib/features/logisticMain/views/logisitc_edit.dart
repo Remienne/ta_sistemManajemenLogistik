@@ -45,7 +45,12 @@ class _LogisticEditState extends State<LogisticEdit> {
 
   Future imgFromGallery() async {
 
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 10,
+        maxHeight: 800,
+        maxWidth: 800
+    );
 
     setState(() {
       if (pickedFile != null) {
@@ -93,7 +98,12 @@ class _LogisticEditState extends State<LogisticEdit> {
 
   Future imgFromCamera() async {
 
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
+    final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 10,
+        maxHeight: 800,
+        maxWidth: 800
+    );
 
     setState(() {
       if (pickedFile != null) {
