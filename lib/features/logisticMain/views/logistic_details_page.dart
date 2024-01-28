@@ -29,7 +29,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -220,6 +219,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                         widget.data['Stok'].toInt().toString(),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
+                    const SizedBox(width: 3),
                     Text(
                         widget.data['Satuan'],
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)
@@ -347,31 +347,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
         onWillPop: _onBackPressed,
         child: Scaffold(
           appBar: AppBar(
-            toolbarHeight: screenHeight * 0.08,
-            elevation: 0,
-            leading: GestureDetector(
-              onTap: () {
-                Get.back();
-              },
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white, // Customize the color
-              ),
-            ),
-            title: Text(
-              "Detail Barang",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(20),
-              ),
-            ),
-            backgroundColor: taPrimaryColor,
             actions: [
               Builder(
                   builder: (context){
@@ -385,21 +360,22 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                 onSelected: (value) {
                                   if (value == 'edit') {
                                     // Call the function to edit the logistics item
-                                    _editPage();
-                                  } else if (value == 'delete') {
+                                    logisticDetailController.destination.text = widget.data['Tujuan Pengiriman'];
+                                    showChangeDestinationPopup(context, logisticDetailController.destination.text);
+                                  }
+                                  else if (value == 'delete') {
                                     // Call the function to delete the logistics item
                                     Alert(
                                       context: context,
                                       type: AlertType.warning,
                                       title: "PERINGATAN!",
-                                      desc: "Apakah anda akan batal mengubah item?",
+                                      desc: "Apakah anda yakin ingin menghapus item?",
                                       buttons: [
                                         DialogButton(
                                           onPressed: () {
                                             setState(() {
-                                              logisticDetailController.deleteItem(
+                                              logisticDetailController.deleteItemOut(
                                                 widget.data['id'],
-                                                widget.data['Link Gambar']
                                               );
                                               Get.offAll(() => const LogisticMain());
                                             });
@@ -444,6 +420,31 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                   }
               )
             ],
+            title: Text(
+              "Detail Barang",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            toolbarHeight: screenHeight * 0.08,
+            elevation: 0,
+            leading: GestureDetector(
+              onTap: () {
+                Get.back();
+              },
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white, // Customize the color
+              ),
+            ),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(20),
+              ),
+            ),
+            backgroundColor: taPrimaryColor,
           ),
           backgroundColor: taBackgroundColor,
           body: SingleChildScrollView(
@@ -499,15 +500,24 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
 
                 //stok
                 const Text(
-                  'Jumlah',
+                  'Jumlah Keluar',
                   style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey
                   ),
                 ),
-                Text(
-                  widget.data['Stok'].toInt().toString(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                Row(
+                  children: [
+                    Text(
+                      widget.data['Stok'].toInt().toString(),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      widget.data['Satuan'],
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
 
@@ -519,15 +529,24 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                       color: Colors.grey
                   ),
                 ),
-                Text(
-                  widget.data['Sisa Stok'].toInt().toString(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                Row(
+                  children: [
+                    Text(
+                      widget.data['Sisa Stok'].toInt().toString(),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      widget.data['Satuan'],
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
 
                 //rak
                 const Text(
-                  'Rak',
+                  'Rak Asal',
                   style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey
@@ -596,7 +615,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   }
 
   Future<void> _editPage() async {
-    await Get.offAll(() => LogisticEdit(data: widget.data));
+    await Get.offAll(() => LogisticEdit(data: widget.data, source: 'logistikIn',));
   }
 
   Future<bool> _onBackPressed() {
@@ -752,6 +771,98 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
               ),
             ),
+            const SizedBox(width: 5,)
+          ],
+        );
+      },
+    );
+  }
+  showChangeDestinationPopup(BuildContext context, String destination) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ubah Tujuan Pengiriman ',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10,),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Tujuan Pengiriman'),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return validatorNull;
+                    }
+                    return null;
+                  },
+                  controller: logisticDetailController.destination,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            //cancel
+            TextButton(
+              onPressed: () {
+                Get.back();
+              },
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                  fontSize:12,
+                ),
+              ),
+            ),
+
+            //proceed
+            ElevatedButton(
+              onPressed: () {
+                if(_formKey.currentState!.validate()){
+                  final sendDestination = logisticDetailController.destination.text;
+                  setState(() {
+                    logisticDetailController.changeItemDestination(
+                        sendDestination,
+                        widget.data['id'],
+                    );
+                    Get.offAll(() => const LogisticMain());
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: taAccentColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+              ),
+              child: Text(
+                'Konfirmasi',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.normal,
+                  fontSize:14,
+                ),
+              ),
+            ),
+
             const SizedBox(width: 5,)
           ],
         );

@@ -20,7 +20,8 @@ import 'package:the_app/repositories/users_repository/user_model.dart';
 
 class LogisticEdit extends StatefulWidget {
   final Map<String, dynamic> data;
-  const LogisticEdit({super.key, required this.data});
+  final String source;
+  const LogisticEdit({super.key, required this.data, required this.source});
 
   @override
   State<LogisticEdit> createState() => _LogisticEditState();
@@ -189,6 +190,8 @@ class _LogisticEditState extends State<LogisticEdit> {
     editController.storageID.text = widget.data['Rak'];
     category = widget.data['Kategori'];
     editController.dateEnd.text = formatted;
+    selectedDate = expirationDate;
+    debugPrint(selectedDate.toString());
   }
 
   @override
@@ -278,28 +281,28 @@ class _LogisticEditState extends State<LogisticEdit> {
                               child: Stack(
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: Colors.grey[300],
-                                    radius: 55,
-                                    child:  _image != null
-                                    //image uploaded
-                                        ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(50),
-                                          child: Image.file(
-                                            _image!,
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.fitHeight,
-                                          ),
-                                        )
-                                        : ClipRRect(
-                                          borderRadius: BorderRadius.circular(50),
-                                          child: CachedNetworkImage(
-                                            imageUrl: editController.imageUrl.text,
-                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                            fit: BoxFit.fitHeight,
-                                          ),
-                                        )
+                                      backgroundColor: Colors.grey[300],
+                                      radius: 55,
+                                      child:  _image != null
+                                      //image uploaded
+                                          ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: Image.file(
+                                          _image!,
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.fitHeight,
+                                        ),
+                                      )
+                                          : ClipRRect(
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: CachedNetworkImage(
+                                          imageUrl: editController.imageUrl.text,
+                                          progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                          errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                          fit: BoxFit.fitHeight,
+                                        ),
+                                      )
                                   ),
                                 ],
                               ),
@@ -540,7 +543,7 @@ class _LogisticEditState extends State<LogisticEdit> {
                             onTap: () async {
                               final DateTime? picked = await showDatePicker(
                                   context: context,
-                                  initialDate: widget.data['Tanggal Kadaluarsa'].toDate(),
+                                  initialDate: selectedDate,
                                   firstDate: DateTime(2001),
                                   lastDate: DateTime(2101));
                               if (picked != null) {
@@ -577,9 +580,7 @@ class _LogisticEditState extends State<LogisticEdit> {
                                               units: units,
                                               stock: double.parse(editController.stock.text.trim()),
                                               category: category,
-                                              dateEnd: selectedDate == DateTime.now()
-                                                  ? Timestamp.fromDate(selectedDate)
-                                                  : widget.data['Tanggal Kadaluarsa'],
+                                              dateEnd: Timestamp.fromDate(selectedDate),
                                               insertDate: Timestamp.fromDate(dateNow),
                                               imgPath: editController.imageUrl.text,
                                               officer: userData.name,
@@ -598,9 +599,7 @@ class _LogisticEditState extends State<LogisticEdit> {
                                               units: units,
                                               stock: double.parse(editController.stock.text.trim()),
                                               category: category,
-                                              dateEnd: selectedDate == DateTime.now()
-                                                  ? Timestamp.fromDate(selectedDate)
-                                                  : widget.data['Tanggal Kadaluarsa'],
+                                              dateEnd: Timestamp.fromDate(selectedDate),
                                               insertDate: Timestamp.fromDate(dateNow),
                                               imgPath: _urlItemImage?? '',
                                               officer: userData.name,

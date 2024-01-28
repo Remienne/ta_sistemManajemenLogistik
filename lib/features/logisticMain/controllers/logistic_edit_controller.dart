@@ -18,5 +18,4 @@ class LogisticEditController extends GetxController{
   Future<void> editItem(LogisticsInModel logistics, String id) async {
     await logisticDb.editLogistic(logistics, id);
   }
-
 }

@@ -85,7 +85,7 @@ class LogisticDb extends GetxController{
     }
   }
 
-  // Edit function
+  // Edit function for logistik masuk
   Future<void> editLogistic(LogisticsInModel logistics, String id) async {
     try {
       // Update the document in logistikMasuk
@@ -112,12 +112,63 @@ class LogisticDb extends GetxController{
     }
   }
 
-
   Future<void> deleteItem(String id, String imageUrl) async {
     try {
       // Delete the document from logistikMasuk
       await _dbLogistikMasuk.doc(id).delete();
       await FirebaseStorage.instance.refFromURL(imageUrl).delete();
+      Get.snackbar(
+        "Sukses!",
+        "Item berhasil dihapus.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (error) {
+      Get.snackbar(
+        "Error",
+        "Gagal menghapus item. Silakan coba lagi!",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      debugPrint("Error deleting item: $error");
+    }
+  }
+
+  // Edit function for logistik keluar
+  Future<void> editChangeDestination(String destination, String id) async {
+    try {
+      // Update the document in logistikKeluar
+      await _dbLogistikKeluar.doc(id).update({
+        'Tujuan Pengiriman': destination,
+      });
+
+      Get.snackbar(
+        "Sukses!",
+        "Tujuan pengiriman berhasil diubah.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      // Log the error
+      debugPrint('Error editing item: $e');
+
+      Get.snackbar(
+        "Galat!",
+        "Terjadi kesalahan, mohon cek kembali.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> deleteItemOut(String id) async {
+    try {
+      // Delete the document from logistikMasuk
+      await _dbLogistikKeluar.doc(id).delete();
       Get.snackbar(
         "Sukses!",
         "Item berhasil dihapus.",
