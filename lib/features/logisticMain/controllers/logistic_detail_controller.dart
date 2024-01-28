@@ -7,6 +7,7 @@ class LogisticDetailController extends GetxController{
 
   final quantity = TextEditingController();
   final destination = TextEditingController();
+  final distributeDate = TextEditingController();
 
   static LogisticDetailController get instance => Get.find();
   final logisticDb = Get.put(LogisticDb());
@@ -22,6 +23,10 @@ class LogisticDetailController extends GetxController{
 
   Future<void> changeItemDestination(String destination, String id,) async {
     await logisticDb.editChangeDestination(destination, id);
+  }
+
+  Future<void> changeItemDistributeDate(DateTime date, String id,) async {
+    await logisticDb.editChangeDistributeItemDate(date, id);
   }
 
   Future<void> deleteItem(String id, String imageUrl) async {

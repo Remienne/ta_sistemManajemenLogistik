@@ -54,7 +54,7 @@ class LogisticDb extends GetxController{
           remainingStock: logistics.stock - quantity,
           category: logistics.category,
           dateEnd: logistics.dateEnd,
-          distributeDate: logistics.insertDate,
+          distributeDate: Timestamp.fromDate(DateTime.now()),
           imgPath: logistics.imgPath,
           officer: logistics.officer,
         );
@@ -147,6 +147,34 @@ class LogisticDb extends GetxController{
       Get.snackbar(
         "Sukses!",
         "Tujuan pengiriman berhasil diubah.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      // Log the error
+      debugPrint('Error editing item: $e');
+
+      Get.snackbar(
+        "Galat!",
+        "Terjadi kesalahan, mohon cek kembali.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> editChangeDistributeItemDate(DateTime date, String id) async {
+    try {
+      // Update the document in logistikKeluar
+      await _dbLogistikKeluar.doc(id).update({
+        'Tanggal Keluar': Timestamp.fromDate(date),
+      });
+
+      Get.snackbar(
+        "Sukses!",
+        "Tanggal pengiriman berhasil diubah.",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,

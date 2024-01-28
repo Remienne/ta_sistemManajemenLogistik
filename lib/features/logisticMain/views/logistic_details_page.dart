@@ -25,6 +25,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   final logisticDetailController = Get.put(LogisticDetailController());
   final userController = Get.put(UserController());
   String validatorNull = 'Kolom tidak boleh kosong!';
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -46,9 +47,8 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
-
     DateTime expirationDate = (widget.data['Tanggal Kadaluarsa']).toDate();
-    String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
+    String formattedExpDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
 
     if (widget.source == 'logistikIn') {
       return WillPopScope(
@@ -69,7 +69,8 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                 if (value == 'edit') {
                                   // Call the function to edit the logistics item
                                   _editPage();
-                                } else if (value == 'delete') {
+                                }
+                                else if (value == 'delete') {
                                   // Call the function to delete the logistics item
                                   Alert(
                                     context: context,
@@ -106,12 +107,30 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                 }
                               },
                               itemBuilder: (BuildContext context) {
-                                return ['edit', 'delete'].map((String choice) {
-                                  return PopupMenuItem<String>(
-                                    value: choice,
-                                    child: Text(choice == 'edit' ? 'Ubah' : 'Hapus'),
-                                  );
-                                }).toList();
+                                return [
+                                  PopupMenuItem<String>(
+                                      value: 'edit',
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(Icons.edit_note, color: Colors.grey.shade700,),
+                                          const SizedBox(width: 20,),
+                                          const Text('Ubah Data'),
+                                        ],
+                                      )
+                                  ),
+                                  PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(Icons.delete, color: Colors.grey.shade700,),
+                                          const SizedBox(width: 20,),
+                                          const Text('Hapus Data'),
+                                        ],
+                                      )
+                                  ),
+                                ];
                               },
                             );
                           }
@@ -252,7 +271,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
 
                 Text(
-                  expirationDate.isBefore(DateTime.now()) ? '$formatted (Telah Kadaluarsa)' : formatted,
+                  expirationDate.isBefore(DateTime.now()) ? '$formattedExpDate (Telah Kadaluarsa)' : formattedExpDate,
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -343,6 +362,9 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
       );
     }
     if (widget.source == 'logistikOut') {
+      DateTime distributeDate = (widget.data['Tanggal Keluar']).toDate();
+      String formattedDistDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(distributeDate);
+
       return WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
@@ -358,10 +380,16 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                               return PopupMenuButton<String>(
                                 color: Colors.white,
                                 onSelected: (value) {
-                                  if (value == 'edit') {
-                                    // Call the function to edit the logistics item
+                                  if (value == 'editDestination') {
+                                    // Call the function to edit the logistics item destination
                                     logisticDetailController.destination.text = widget.data['Tujuan Pengiriman'];
                                     showChangeDestinationPopup(context, logisticDetailController.destination.text);
+                                  }
+                                  if (value == 'editDistributeDate') {
+                                    // Call the function to edit the logistics item distribute date
+                                    logisticDetailController.distributeDate.text = formattedDistDate;
+                                    selectedDate = distributeDate;
+                                    showChangeDistributeDatePopup(context, selectedDate);
                                   }
                                   else if (value == 'delete') {
                                     // Call the function to delete the logistics item
@@ -399,12 +427,41 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                                   }
                                 },
                                 itemBuilder: (BuildContext context) {
-                                  return ['edit', 'delete'].map((String choice) {
-                                    return PopupMenuItem<String>(
-                                      value: choice,
-                                      child: Text(choice == 'edit' ? 'Ubah' : 'Hapus'),
-                                    );
-                                  }).toList();
+                                  return [
+                                    PopupMenuItem<String>(
+                                        value: 'editDestination',
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.edit_location_alt, color: Colors.grey.shade700,),
+                                            const SizedBox(width: 20,),
+                                            const Text('Ubah Tujuan Kirim'),
+                                          ],
+                                        )
+                                    ),
+                                    PopupMenuItem<String>(
+                                        value: 'editDistributeDate',
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.edit_calendar, color: Colors.grey.shade700,),
+                                            const SizedBox(width: 20,),
+                                            const Text('Ubah Tanggal Kirim'),
+                                          ],
+                                        )
+                                    ),
+                                    PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.delete, color: Colors.grey.shade700,),
+                                            const SizedBox(width: 20,),
+                                            const Text('Hapus Data'),
+                                          ],
+                                        )
+                                    ),
+                                  ];
                                 },
                               );
                             }
@@ -568,7 +625,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
 
                 Text(
-                  expirationDate.isBefore(DateTime.now()) ? '$formatted (Telah Kadaluarsa)' : formatted,
+                  expirationDate.isBefore(DateTime.now()) ? '$formattedExpDate (Telah Kadaluarsa)' : formattedExpDate,
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -589,6 +646,21 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     widget.data['Tujuan Pengiriman'],
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
+
+                const SizedBox(height: 20),
+
+                //tanggal kirim
+                const Text(
+                  'Tanggal Pengiriman',
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey
+                  ),
+                ),
+                Text(
+                  formattedDistDate,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
 
                 const SizedBox(height: 20),
 
@@ -777,6 +849,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
       },
     );
   }
+
   showChangeDestinationPopup(BuildContext context, String destination) {
     showDialog(
       context: context,
@@ -800,7 +873,6 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                 ),
                 const SizedBox(height: 10,),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Tujuan Pengiriman'),
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -870,5 +942,117 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
     );
   }
 
+  showChangeDistributeDatePopup(BuildContext context, DateTime date) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // Adjust the value as needed
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ubah Tanggal Keluar ',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10,),
+                TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    controller: logisticDetailController.distributeDate,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return validatorNull;
+                      }
+                      return null;
+                    },
+                    onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2001),
+                        lastDate: DateTime(2101));
+                    if (picked != null) {
+                      setState(() {
+                        selectedDate = DateTime(
+                          picked.year,
+                          picked.month,
+                          picked.day,
+                          DateTime.now().hour,
+                          DateTime.now().minute,
+                          DateTime.now().second,
+                        );
+                        logisticDetailController.distributeDate.text = DateFormat(
+                            'EEEE, d MMMM yyyy', 'id_ID')
+                            .format(selectedDate);
+                      });
+                    }
+                  },
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                    ),
+                    readOnly: true,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            //cancel
+            TextButton(
+              onPressed: () {
+                Get.back();
+              },
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                  fontSize:12,
+                ),
+              ),
+            ),
 
+            //proceed
+            ElevatedButton(
+              onPressed: () {
+                if(_formKey.currentState!.validate()){
+                  final sendDistributeDate = selectedDate;
+                  setState(() {
+                    logisticDetailController.changeItemDistributeDate(
+                      sendDistributeDate,
+                      widget.data['id'],
+                    );
+                    Get.offAll(() => const LogisticMain());
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: taAccentColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+              ),
+              child: Text(
+                'Konfirmasi',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.normal,
+                  fontSize:14,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 5,)
+          ],
+        );
+      },
+    );
+  }
 }

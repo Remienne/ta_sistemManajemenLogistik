@@ -9,6 +9,7 @@ import 'package:flutter_shakemywidget/flutter_shakemywidget.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -442,12 +443,13 @@ class _LogisticOutState extends State<LogisticOut> {
     //sort the list that has been fetch
     _allResults.sort((a, b) {
       // Extract and parse 'Tanggal Kadaluarsa' as DateTime
-      DateTime tanggalKadaluarsaA = a['Tanggal Kadaluarsa'].toDate();
-      DateTime tanggalKadaluarsaB = b['Tanggal Kadaluarsa'].toDate();
+      DateTime tanggalA = a['Tanggal Keluar'].toDate();
+      DateTime tanggalB = b['Tanggal Keluar'].toDate();
 
-      // Compare 'Tanggal Kadaluarsa'
-      return tanggalKadaluarsaA.compareTo(tanggalKadaluarsaB);
+      // Compare 'n'
+      return tanggalB.compareTo(tanggalA);
     });
+
     //handling the search feature
     _searchResultList();
   }
@@ -622,6 +624,7 @@ class _LogisticOutState extends State<LogisticOut> {
         )
     );
   }
+
   Widget _buildFilterContents(StateSetter setState) {
     return Wrap(
       children: [
@@ -756,21 +759,32 @@ class _LogisticOutState extends State<LogisticOut> {
   }
 
   Future<void> generatePDF() async {
+    // Initialize the localization
+    await initializeDateFormatting('id_ID', null);
+
     // Generate PDF and fetch a Logo
     final pdf = pw.Document();
     final ByteData image = await rootBundle.load(taMainLogo);
     Uint8List imageData = (image).buffer.asUint8List();
 
     // Specify the fields you want to include in the PDF
-    List<String> fieldName = ['No', 'Nama', 'Jumlah', 'Satuan', 'Jenis Barang', 'Tanggal Keluar', 'Detail Pengiriman', 'Sisa Stok'];
-    List<String> fieldContentsFrom = ['Nama Barang', 'Stok', 'Satuan', 'Kategori', 'Tanggal Keluar', 'Tujuan Pengiriman', 'Sisa Stok'];
+    List<String> fieldName = [
+      'No', 'Nama', 'Jumlah',
+      'Satuan', 'Jenis Barang', 'Tanggal Keluar',
+      'Detail Pengiriman', 'Sisa Stok'
+    ];
+    List<String> fieldContentsFrom = [
+      'Nama Barang', 'Stok',
+      'Satuan', 'Kategori', 'Tanggal Keluar',
+      'Tujuan Pengiriman', 'Sisa Stok'
+    ];
 
     DateTime dateNow = DateTime.now();
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);
 
     // Set the number of rows you want to display on each page
-    const int firstPageRow = 7;
-    const int otherPagesRow = 8;
+    const int firstPageRow = 4;
+    const int otherPagesRow = 6;
 
     // Calculate the number of pages needed for subsequent pages
     final int otherPagesCount = ((_allResults.length - firstPageRow) / otherPagesRow).ceil();
@@ -966,6 +980,7 @@ class _LogisticOutState extends State<LogisticOut> {
 
       pdf.addPage(
         pw.MultiPage(
+          maxPages: 100,
           pageTheme: pw.PageTheme(
             orientation: pw.PageOrientation.landscape,
             pageFormat: PdfPageFormat.a4.landscape,
