@@ -271,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: Center(
                         child: Text(
-                          'Versi 1.11',
+                          'Versi 1.11.1',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey,

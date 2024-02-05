@@ -740,6 +740,9 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     if (value == null || value.isEmpty) {
                       return validatorNull;
                     }
+                    if (value.length > 66) {
+                      return 'Peringatan! Teks tidak dapat melebihi 65 karakter.'; // Add your warning message here
+                    }
                     return null;
                   },
                   controller: logisticDetailController.destination,
@@ -747,6 +750,8 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     fontSize: 12.5,
                   ),
                   keyboardType: TextInputType.text,
+                  maxLines: 1,
+                  maxLength: 66,
                 ),
               ],
             ),
@@ -798,6 +803,16 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                       "Input nilai tidak dapat bernilai 0. Mohon cek kembali!",
                       snackPosition: SnackPosition.BOTTOM,
                       backgroundColor: Colors.redAccent,
+                      colorText: Colors.white,
+                    );
+                  }
+                  else if (logisticDetailController.destination.text.length > 66) {
+                    // Show a warning message for destination length
+                    Get.snackbar(
+                      "PERINGATAN!",
+                      "Teks tujuan pengiriman terlalu panjang. Mohon atur kembali!",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange, // You can adjust the color for warnings
                       colorText: Colors.white,
                     );
                   }
