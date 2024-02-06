@@ -741,7 +741,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                       return validatorNull;
                     }
                     if (value.length > 66) {
-                      return 'Peringatan! Teks tidak dapat melebihi 65 karakter.'; // Add your warning message here
+                      return 'Peringatan! Teks tidak dapat melebihi 66 karakter.'; // Add your warning message here
                     }
                     return null;
                   },
@@ -900,6 +900,7 @@ class _LogisticDetailsPageState extends State<LogisticDetailsPage> {
                     fontSize: 12.5,
                   ),
                   keyboardType: TextInputType.text,
+                  maxLength: 66,
                 ),
               ],
             ),

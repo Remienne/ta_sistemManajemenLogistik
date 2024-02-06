@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdfx/pdfx.dart' as pdfx_show;
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:share/share.dart';
 import 'package:the_app/constants/colors.dart';
 import 'package:the_app/constants/img_path.dart';
@@ -28,6 +29,334 @@ class LogisticOut extends StatefulWidget {
 }
 
 class _LogisticOutState extends State<LogisticOut> {
+  final FocusNode _searchFocusNode = FocusNode();
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Unfocus the search bar when tapping outside of it
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+        }
+      },
+      child: WillPopScope(
+        onWillPop: () async {
+          _searchFocusNode.unfocus();
+          bool shouldPop = false; // Set to false if you want to prevent the back press
+          if (!shouldPop) {
+            // Show a confirmation dialog or perform other actions
+            Alert(
+              context: context,
+              type: AlertType.warning,
+              title: "PERINGATAN!",
+              desc: "Apakah anda yakin ingin keluar dari aplikasi?",
+              buttons: [
+                DialogButton(
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  },
+                  color: taAccentColor,
+                  child: const Text(
+                    "Ya",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ),
+                DialogButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  color: Colors.white,
+                  child: const Text(
+                    "Tidak",
+                    style: TextStyle(color: taPrimaryColor, fontSize: 15),
+                  ),
+                ),
+              ],
+            ).show();
+          }
+          return shouldPop;
+        },
+        child: Scaffold(
+          body: Stack(
+            children: [
+              //body
+              Column(
+                children: [
+                  // Search bar with sort button
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25, left: 15, right: 15, bottom: 8),
+                    child: Row(
+                      children: [
+                        //search bar
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    focusNode: _searchFocusNode,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: 'Pencarian ...',
+                                      hintStyle: TextStyle(fontStyle: FontStyle.italic),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                _searchController.text.isNotEmpty
+                                    ? GestureDetector(
+                                      onTap: (){
+                                        _searchController.clear();
+                                        _searchFocusNode.unfocus();
+                                        setState(() {});
+                                      },
+                                      child: const Icon(Icons.clear, color: taPrimaryColor, size: 20,),
+                                )
+                                    : const Icon(Icons.search),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        //sort button
+                        GestureDetector(
+                          onTap: () {
+                            // Implement the sort button function
+                            _showFilterPopup(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _sortButtonColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(Icons.sort, color: _sortIconColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // item list
+                  Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 7),
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator(),)
+                            : _resultList.isEmpty
+                            ? Center(
+                          child: Text(
+                            'Item tidak ditemukan!',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                            : ListView.builder(
+                          itemCount: _resultList.length,
+                          itemBuilder: (c, index) {
+                            DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
+                            bool isExpired = expirationDate.isBefore(DateTime.now());
+                            String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
+
+                            // Check if the current item is expired
+                            if (isExpired) {
+                              // Expired item UI
+                              return Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: (){
+                                      Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikOut'));
+                                    },
+                                    child: Card(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        clipBehavior: Clip.antiAlias,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Container(
+                                            height: 90,
+                                            padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                            child: Row(
+                                              children: [
+                                                //image
+                                                SizedBox(
+                                                    width: 65,
+                                                    height: 65,
+                                                    child: Container(
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Hero(
+                                                            tag: _resultList[index]['id'],
+                                                            child: CachedNetworkImage(
+                                                              imageUrl: _resultList[index]['Link Gambar'],
+                                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                            )
+                                                        )
+                                                    )
+                                                ),
+                                                const SizedBox(width: 20),
+                                                //desc
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        _resultList[index]['Nama Barang'],
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: GoogleFonts.poppins(
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize:18,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        _resultList[index]['Kategori'],
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize:14,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'Kadaluarsa',
+                                                        style: GoogleFonts.poppins(
+                                                            fontSize:14,
+                                                            color: Colors.redAccent
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                        )
+                                    ),
+                                  ), // Divider for expired items
+                                ],
+                              );
+                            }
+                            else {
+                              // Not expired item UI
+                              return Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: (){
+                                      Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikOut'));
+                                    },
+                                    child: Card(
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        clipBehavior: Clip.antiAlias,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Container(
+                                            height: 90,
+                                            padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
+                                            child: Row(
+                                              children: [
+                                                //image
+                                                SizedBox(
+                                                    width: 65,
+                                                    height: 65,
+                                                    child: Container(
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Hero(
+                                                            tag: _resultList[index]['id'],
+                                                            child: CachedNetworkImage(
+                                                              imageUrl: _resultList[index]['Link Gambar'],
+                                                              progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
+                                                              errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
+                                                            )
+                                                        )
+                                                    )
+                                                ),
+                                                const SizedBox(width: 20),
+                                                //desc
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        _resultList[index]['Nama Barang'],
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: GoogleFonts.poppins(
+                                                          fontWeight: FontWeight.w600,
+                                                          fontSize:18,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        _resultList[index]['Kategori'],
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize:14,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        "Exp: $formatted",
+                                                        style: GoogleFonts.poppins(
+                                                          fontSize:14,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                        )
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                      )
+                  ),
+                ],
+              ),
+            ],
+          ),
+          floatingActionButton: SpeedDial(
+            animatedIcon: AnimatedIcons.menu_close,
+            backgroundColor: taAccentColor,
+            foregroundColor: Colors.white,
+            activeBackgroundColor: Colors.white,
+            activeForegroundColor: Colors.black,
+            elevation: 0,
+            overlayOpacity: 0,
+            children: [
+              SpeedDialChild(
+                child: Transform.scale(
+                  scale: 1.2,
+                  child: const Icon(Icons.picture_as_pdf),
+                ),
+                backgroundColor: taAccentColor,
+                foregroundColor: Colors.white,
+                onTap: () {
+                  generatePDF();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -41,287 +370,8 @@ class _LogisticOutState extends State<LogisticOut> {
     // Your cleanup code here
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onBackPressed,
-      child: Scaffold(
-        body: Stack(
-          children: [
-            //body
-            Column(
-              children: [
-                // Search bar with sort button
-                Padding(
-                  padding: const EdgeInsets.only(top: 25, left: 15, right: 15, bottom: 8),
-                  child: Row(
-                    children: [
-                      //search bar
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                  ),
-                                  decoration: const InputDecoration(
-                                    hintText: 'Pencarian ...',
-                                    hintStyle: TextStyle(fontStyle: FontStyle.italic),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                              const Icon(Icons.search),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 8),
-
-                      //sort button
-                      GestureDetector(
-                        onTap: () {
-                          // Implement the sort button function
-                          _showFilterPopup(context);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: _sortButtonColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.sort, color: _sortIconColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // item list
-                Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 7),
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator(),)
-                          : _resultList.isEmpty
-                          ? Center(
-                        child: Text(
-                          'Data tidak ditemukan!',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          : ListView.builder(
-                        itemCount: _resultList.length,
-                        itemBuilder: (c, index) {
-                          DateTime expirationDate = (_resultList[index]['Tanggal Kadaluarsa']).toDate();
-                          bool isExpired = expirationDate.isBefore(DateTime.now());
-                          String formatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(expirationDate);
-
-                          // Check if the current item is expired
-                          if (isExpired) {
-                            // Expired item UI
-                            return Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: (){
-                                    Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikOut'));
-                                  },
-                                  child: Card(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      clipBehavior: Clip.antiAlias,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Container(
-                                          height: 90,
-                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                          child: Row(
-                                            children: [
-                                              //image
-                                              SizedBox(
-                                                  width: 65,
-                                                  height: 65,
-                                                  child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      child: Hero(
-                                                          tag: _resultList[index]['id'],
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: _resultList[index]['Link Gambar'],
-                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                                          )
-                                                      )
-                                                  )
-                                              ),
-                                              const SizedBox(width: 20),
-                                              //desc
-                                              Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      _resultList[index]['Nama Barang'],
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize:18,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _resultList[index]['Kategori'],
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      'Kadaluarsa',
-                                                      style: GoogleFonts.poppins(
-                                                          fontSize:14,
-                                                          color: Colors.redAccent
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            ],
-                                          )
-                                      )
-                                  ),
-                                ), // Divider for expired items
-                              ],
-                            );
-                          }
-                          else {
-                            // Not expired item UI
-                            return Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: (){
-                                    Get.to(() => LogisticDetailsPage(data: _resultList[index], source: 'logistikOut'));
-                                  },
-                                  child: Card(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      clipBehavior: Clip.antiAlias,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Container(
-                                          height: 90,
-                                          padding: const EdgeInsets.only(top: 2, bottom: 2, left: 12, right: 6),
-                                          child: Row(
-                                            children: [
-                                              //image
-                                              SizedBox(
-                                                  width: 65,
-                                                  height: 65,
-                                                  child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      child: Hero(
-                                                          tag: _resultList[index]['id'],
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: _resultList[index]['Link Gambar'],
-                                                            progressIndicatorBuilder: (_, url, download) => CircularProgressIndicator(value: download.progress),
-                                                            errorWidget: (context, url, error) => const Image(image: AssetImage('assets/images/no-photo.png')),
-                                                          )
-                                                      )
-                                                  )
-                                              ),
-                                              const SizedBox(width: 20),
-                                              //desc
-                                              Expanded(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      _resultList[index]['Nama Barang'],
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize:18,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _resultList[index]['Kategori'],
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "Exp: $formatted",
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize:14,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            ],
-                                          )
-                                      )
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                    )
-                ),
-              ],
-            ),
-          ],
-        ),
-        floatingActionButton: SpeedDial(
-          animatedIcon: AnimatedIcons.menu_close,
-          backgroundColor: taAccentColor,
-          foregroundColor: Colors.white,
-          activeBackgroundColor: Colors.white,
-          activeForegroundColor: Colors.black,
-          elevation: 0,
-          overlayOpacity: 0,
-          children: [
-            SpeedDialChild(
-              child: Transform.scale(
-                scale: 1.2,
-                child: const Icon(Icons.picture_as_pdf),
-              ),
-              backgroundColor: taAccentColor,
-              foregroundColor: Colors.white,
-              onTap: () {
-                generatePDF();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<bool> _onBackPressed() {
-    Get.back();
-    return Future.value(false);
   }
 
   final shakeKey = GlobalKey<ShakeWidgetState>(); //widget shaker key
@@ -783,11 +833,11 @@ class _LogisticOutState extends State<LogisticOut> {
     String formattedDateNow = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(dateNow);
 
     // Set the number of rows you want to display on each page
-    const int firstPageRow = 4;
-    const int otherPagesRow = 6;
+    const int firstPageRow = 3;
+    const int otherPagesRow = 5;
 
     // Calculate the number of pages needed for subsequent pages
-    final int otherPagesCount = ((_allResults.length - firstPageRow) / otherPagesRow).ceil();
+    final int otherPagesCount = ((_resultList.length - firstPageRow) / otherPagesRow).ceil();
 
     // Table contents column widths
     Map<int, pw.TableColumnWidth> customColumnWidths = {
@@ -803,7 +853,7 @@ class _LogisticOutState extends State<LogisticOut> {
     };
 
     //re-Align the ordering of all the items
-    _allResults.sort((a, b) {
+    _resultList.sort((a, b) {
       // First, compare 'Kategori'
       int kategoriComparison = a['Kategori'].compareTo(b['Kategori']);
       if (kategoriComparison != 0) {
@@ -883,7 +933,7 @@ class _LogisticOutState extends State<LogisticOut> {
                   pw.SizedBox(height: 15),
 
                   // tables
-                  if (_allResults.isNotEmpty)
+                  if (_resultList.isNotEmpty)
                   //tables
                     pw.Table(
                       defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
@@ -904,7 +954,7 @@ class _LogisticOutState extends State<LogisticOut> {
                         ),
 
                         // Data rows
-                        ..._allResults.sublist(0, min(firstPageRow, _allResults.length)).asMap().entries.map((entry) {
+                        ..._resultList.sublist(0, min(firstPageRow, _resultList.length)).asMap().entries.map((entry) {
                           int index = entry.key;
                           Map<String, dynamic> row = entry.value;
 
@@ -939,7 +989,7 @@ class _LogisticOutState extends State<LogisticOut> {
                         }).toList(),
                       ],
                     ),
-                  if (_allResults.isEmpty)
+                  if (_resultList.isEmpty)
                     pw.Table(
                       defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
                       border: pw.TableBorder.all(),
@@ -973,10 +1023,10 @@ class _LogisticOutState extends State<LogisticOut> {
       int endIndex = startIndex + otherPagesRow;
 
       // Ensure endIndex doesn't exceed the total number of rows
-      endIndex = endIndex > _allResults.length ? _allResults.length : endIndex;
+      endIndex = endIndex > _resultList.length ? _resultList.length : endIndex;
 
       // Subset of data for the current page
-      List currentPageData = _allResults.sublist(startIndex, endIndex);
+      List currentPageData = _resultList.sublist(startIndex, endIndex);
 
       pdf.addPage(
         pw.MultiPage(

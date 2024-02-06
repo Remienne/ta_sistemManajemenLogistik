@@ -322,6 +322,7 @@ class _LogisticInputState extends State<LogisticInput> {
                             }
                             return null;
                           },
+                          maxLength: 30,
                         ),
 
                         const SizedBox(height: 15),
@@ -345,6 +346,7 @@ class _LogisticInputState extends State<LogisticInput> {
                             }
                             return null;
                           },
+                          maxLength: 50,
                         ),
 
                         const SizedBox(height: 15),

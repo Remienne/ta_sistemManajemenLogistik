@@ -331,6 +331,7 @@ class _LogisticEditState extends State<LogisticEdit> {
                             }
                             return null;
                           },
+                          maxLength: 30,
                         ),
 
                         const SizedBox(height: 15),
@@ -354,6 +355,7 @@ class _LogisticEditState extends State<LogisticEdit> {
                             }
                             return null;
                           },
+                          maxLength: 50,
                         ),
 
                         const SizedBox(height: 15),
